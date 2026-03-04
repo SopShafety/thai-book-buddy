@@ -27,36 +27,55 @@ async function signInWithLINE(liff: Liff) {
     return;
   }
 
-  console.log("[signInWithLINE] Signing in with Supabase...");
   const supabase = getSupabase();
 
-  // LINE is configured as a custom OIDC provider in Supabase;
-  // pass the issuer URL as the provider identifier.
-  const { data, error } = await supabase.auth.signInWithIdToken({
-    provider: "https://access.line.me" as "google",
-    token: idToken,
+  // Step 1: Send LINE idToken to Edge Function for server-side verification
+  console.log("[signInWithLINE] Calling auth-line edge function...");
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/auth-line`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ idToken }),
+    }
+  );
+
+  const edgeData = await res.json();
+  if (!res.ok) {
+    console.error("[signInWithLINE] Edge function error:", edgeData);
+    return;
+  }
+
+  const { token_hash, display_name, picture_url } = edgeData;
+
+  // Step 2: Exchange the token hash for a real Supabase session
+  console.log("[signInWithLINE] Exchanging token for session...");
+  const { data, error } = await supabase.auth.verifyOtp({
+    token_hash,
+    type: "email",
   });
 
-  if (error) {
-    console.error("[signInWithLINE] Supabase auth failed:", error.message);
+  if (error || !data.user) {
+    console.error("[signInWithLINE] verifyOtp failed:", error?.message);
     return;
   }
 
-  const user = data.user;
-  if (!user) {
-    console.error("[signInWithLINE] No user returned from Supabase");
-    return;
-  }
+  console.log("[signInWithLINE] Session created for", data.user.id);
 
-  console.log("[signInWithLINE] Auth success, upserting profile for", user.id);
-  const profile = await liff.getProfile();
+  // Step 3: Upsert profile — fall back to liff.getProfile() if token had no name/picture
+  let finalName = display_name;
+  let finalPicture = picture_url;
+  if (!finalName) {
+    const profile = await liff.getProfile();
+    finalName = profile.displayName;
+    finalPicture = profile.pictureUrl ?? null;
+  }
 
   const { error: upsertError } = await supabase.from("profiles").upsert(
-    {
-      id: user.id,
-      display_name: profile.displayName,
-      picture_url: profile.pictureUrl ?? null,
-    },
+    { id: data.user.id, display_name: finalName, picture_url: finalPicture },
     { onConflict: "id" }
   );
 
