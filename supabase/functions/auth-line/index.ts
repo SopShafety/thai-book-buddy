@@ -12,33 +12,28 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { idToken } = await req.json();
+    const { accessToken } = await req.json();
 
-    // Step 1: Verify the LINE idToken with LINE's API
-    const params = new URLSearchParams({
-      id_token: idToken,
-      client_id: Deno.env.get("LINE_CHANNEL_ID")!,
+    // Step 1: Verify the access token by calling LINE's Profile API
+    const profileRes = await fetch("https://api.line.me/v2/profile", {
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
 
-    const verifyRes = await fetch("https://api.line.me/oauth2/v2.1/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params,
-    });
-
-    const lineData = await verifyRes.json();
-
-    if (!verifyRes.ok) {
+    if (!profileRes.ok) {
+      const detail = await profileRes.json();
       return new Response(
-        JSON.stringify({ error: "LINE verification failed", detail: lineData }),
+        JSON.stringify({ error: "LINE profile fetch failed", detail }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const lineUserId: string = lineData.sub;
+    const lineProfile = await profileRes.json();
+    // lineProfile: { userId, displayName, pictureUrl, statusMessage }
+
+    const lineUserId: string = lineProfile.userId;
     const email = `line_${lineUserId}@line-auth.local`;
-    const display_name: string | null = lineData.name ?? null;
-    const picture_url: string | null = lineData.picture ?? null;
+    const display_name: string | null = lineProfile.displayName ?? null;
+    const picture_url: string | null = lineProfile.pictureUrl ?? null;
 
     // Step 2: Create Supabase admin client
     // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected by Supabase

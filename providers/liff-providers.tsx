@@ -23,14 +23,14 @@ const LIFFContext = createContext<LIFFContextValue>({
 });
 
 async function signInWithLINE(liff: Liff): Promise<string | null> {
-  const idToken = liff.getIDToken();
-  if (!idToken) {
-    return "No idToken — enable 'openid' scope in your LIFF channel settings";
+  const accessToken = liff.getAccessToken();
+  if (!accessToken) {
+    return "No accessToken from LIFF — check that the LIFF app is properly initialized";
   }
 
   const supabase = getSupabase();
 
-  // Step 1: Send LINE idToken to Edge Function for server-side verification
+  // Step 1: Send LINE accessToken to Edge Function — it calls LINE's Profile API to verify
   let res: Response;
   try {
     res = await fetch(
@@ -41,7 +41,7 @@ async function signInWithLINE(liff: Liff): Promise<string | null> {
           "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ accessToken }),
       }
     );
   } catch (err) {
@@ -65,14 +65,9 @@ async function signInWithLINE(liff: Liff): Promise<string | null> {
     return `verifyOtp failed: ${error?.message ?? "no user returned"}`;
   }
 
-  // Step 3: Upsert profile — fall back to liff.getProfile() if token had no name/picture
-  let finalName = display_name;
-  let finalPicture = picture_url;
-  if (!finalName) {
-    const profile = await liff.getProfile();
-    finalName = profile.displayName;
-    finalPicture = profile.pictureUrl ?? null;
-  }
+  // Step 3: Upsert profile — edge function already got name/picture from LINE Profile API
+  const finalName = display_name;
+  const finalPicture = picture_url;
 
   const { error: upsertError } = await supabase.from("profiles").upsert(
     { id: data.user.id, display_name: finalName, picture_url: finalPicture },
