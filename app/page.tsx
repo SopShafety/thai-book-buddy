@@ -2,8 +2,7 @@
 import { useLIFF } from "../providers/liff-providers";
 
 export default function Home() {
-  const { liff, liffError, isLoading } = useLIFF();
-  const isLoggedIn = liff?.isLoggedIn() ?? false;
+  const { liff, liffError, isLoading, isLoggedIn, logout } = useLIFF();
 
   return (
     <div className="relative w-full h-[100dvh] bg-white overflow-hidden">
@@ -56,7 +55,7 @@ export default function Home() {
 
         {liff && isLoggedIn && (
           <button
-            onClick={() => liff.logout()}
+            onClick={logout}
             className="flex h-[56px] w-full items-center justify-center rounded-[8px] border border-gray-300 bg-white active:scale-95 transition-all"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-gray-700 leading-normal">

@@ -7,13 +7,17 @@ import { getSupabase } from "../utils/supabase";
 interface LIFFContextValue {
   liff: Liff | null;
   isLoading: boolean;
+  isLoggedIn: boolean;
   liffError: string | null;
+  logout: () => void;
 }
 
 const LIFFContext = createContext<LIFFContextValue>({
   liff: null,
   isLoading: true,
+  isLoggedIn: false,
   liffError: null,
+  logout: () => {},
 });
 
 async function signInWithLINE(liff: Liff) {
@@ -55,6 +59,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [liffObject, setLiffObject] = useState<Liff | null>(null);
   const [liffError, setLiffError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Execute liff.init() when the app is initialized
   useEffect(() => {
@@ -68,6 +73,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
           .then(async () => {
             console.log("LIFF init succeeded.");
             setLiffObject(liff);
+            setIsLoggedIn(liff.isLoggedIn());
 
             if (liff.isLoggedIn()) {
               await signInWithLINE(liff);
@@ -83,10 +89,17 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
+  function logout() {
+    liffObject?.logout();
+    setIsLoggedIn(false);
+  }
+
   const value: LIFFContextValue = {
     liff: liffObject,
     isLoading,
-    liffError: liffError,
+    isLoggedIn,
+    liffError,
+    logout,
   };
   return <LIFFContext.Provider value={value}>{children}</LIFFContext.Provider>;
 }
