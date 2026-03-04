@@ -1,8 +1,7 @@
 "use client";
 import { useLIFF } from "../providers/liff-providers";
 
-const catImage =
-  "https://www.figma.com/api/mcp/asset/149ebdd8-8175-480b-94d7-c375d448cdbb";
+const catImage = "/cat lying on books.png";
 
 export default function Home() {
   const { liff, liffError, isLoading } = useLIFF();
