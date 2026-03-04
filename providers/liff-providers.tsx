@@ -2,7 +2,7 @@
 
 import { Liff } from "@line/liff";
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../utils/supabase";
+import { getSupabase } from "../utils/supabase";
 
 interface LIFFContextValue {
   liff: Liff | null;
@@ -20,6 +20,7 @@ async function signInWithLINE(liff: Liff) {
   const idToken = liff.getIDToken();
   if (!idToken) return;
 
+  const supabase = getSupabase();
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "kakao", // Supabase uses "kakao" as the OIDC provider name for LINE — see note below
     token: idToken,
