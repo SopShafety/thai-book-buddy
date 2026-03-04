@@ -22,25 +22,35 @@ const LIFFContext = createContext<LIFFContextValue>({
 
 async function signInWithLINE(liff: Liff) {
   const idToken = liff.getIDToken();
-  if (!idToken) return;
+  if (!idToken) {
+    console.error("[signInWithLINE] No idToken from LIFF");
+    return;
+  }
 
+  console.log("[signInWithLINE] Signing in with Supabase...");
   const supabase = getSupabase();
+
+  // LINE is configured as a custom OIDC provider in Supabase;
+  // pass the issuer URL as the provider identifier.
   const { data, error } = await supabase.auth.signInWithIdToken({
-    provider: "kakao", // Supabase uses "kakao" as the OIDC provider name for LINE — see note below
+    provider: "https://access.line.me" as "google",
     token: idToken,
   });
 
   if (error) {
-    console.error("Supabase sign-in failed:", error.message);
+    console.error("[signInWithLINE] Supabase auth failed:", error.message);
     return;
   }
 
   const user = data.user;
-  if (!user) return;
+  if (!user) {
+    console.error("[signInWithLINE] No user returned from Supabase");
+    return;
+  }
 
+  console.log("[signInWithLINE] Auth success, upserting profile for", user.id);
   const profile = await liff.getProfile();
 
-  // Upsert profile row — safe to call on every login
   const { error: upsertError } = await supabase.from("profiles").upsert(
     {
       id: user.id,
@@ -51,7 +61,9 @@ async function signInWithLINE(liff: Liff) {
   );
 
   if (upsertError) {
-    console.error("Profile upsert failed:", upsertError.message);
+    console.error("[signInWithLINE] Profile upsert failed:", upsertError.message);
+  } else {
+    console.log("[signInWithLINE] Profile upserted successfully");
   }
 }
 
