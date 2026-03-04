@@ -6,11 +6,11 @@ export default function Home() {
   const isLoggedIn = liff?.isLoggedIn() ?? false;
 
   return (
-    <div className="bg-white relative w-[393px] h-screen mx-auto overflow-hidden">
+    <div className="relative w-full h-[100dvh] bg-white overflow-hidden">
 
-      {/* Image Container — top: 128px, centered */}
-      <div className="-translate-x-1/2 absolute left-1/2 top-[128px] flex flex-col items-center p-[8px] w-[393px]">
-        <div className="h-[261px] relative w-full">
+      {/* Image Container */}
+      <div className="absolute top-[128px] left-0 right-0 flex flex-col items-center px-[8px]">
+        <div className="relative h-[261px] w-full">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <img
               alt="cat lying on books"
@@ -21,18 +21,18 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Title Container — top: 405px, centered */}
-      <div className="-translate-x-1/2 absolute left-1/2 top-[405px] flex flex-col gap-[14px] items-center w-[393px] text-black whitespace-nowrap leading-normal">
+      {/* Title Container */}
+      <div className="absolute top-[405px] left-0 right-0 flex flex-col gap-[14px] items-center text-black leading-normal">
         <p className="font-[family-name:var(--font-literata)] text-[40px] font-normal">
           BookFair Buddy
         </p>
-        <p className="font-[family-name:var(--font-sarabun)] text-[24px] not-italic">
+        <p className="font-[family-name:var(--font-sarabun)] text-[24px]">
           เพื่อนช่วยป้ายยาหนังสือ
         </p>
       </div>
 
       {/* Button Container — pinned to bottom */}
-      <div className="absolute bottom-0 left-0 flex flex-col items-start px-[16px] py-[32px] w-[393px]">
+      <div className="absolute bottom-0 left-0 right-0 px-[16px] py-[32px]">
         {isLoading && (
           <div className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-gray-100">
             <p className="text-gray-400 text-[20px]">Loading...</p>
@@ -40,17 +40,15 @@ export default function Home() {
         )}
 
         {liffError && (
-          <p className="text-red-500 text-sm text-center w-full mb-2">
-            {liffError}
-          </p>
+          <p className="text-red-500 text-sm text-center w-full mb-2">{liffError}</p>
         )}
 
         {liff && !isLoggedIn && (
           <button
             onClick={() => liff.login()}
-            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#07c755] hover:bg-[#05b34c] active:scale-95 transition-all"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#07c755] active:scale-95 transition-all"
           >
-            <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white whitespace-nowrap leading-normal">
+            <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white leading-normal">
               Login with LINE
             </span>
           </button>
@@ -59,9 +57,9 @@ export default function Home() {
         {liff && isLoggedIn && (
           <button
             onClick={() => liff.logout()}
-            className="flex h-[56px] w-full items-center justify-center rounded-[8px] border border-gray-300 bg-white hover:bg-gray-50 active:scale-95 transition-all"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] border border-gray-300 bg-white active:scale-95 transition-all"
           >
-            <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-gray-700 whitespace-nowrap leading-normal">
+            <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-gray-700 leading-normal">
               Logout
             </span>
           </button>
