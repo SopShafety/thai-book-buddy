@@ -2,7 +2,7 @@
 import { useLIFF } from "../providers/liff-providers";
 
 export default function Home() {
-  const { liff, liffError, isLoading, isLoggedIn, logout } = useLIFF();
+  const { liff, liffError, authError, isLoading, isLoggedIn, logout } = useLIFF();
 
   return (
     <div className="relative w-full h-[100dvh] bg-white overflow-hidden">
@@ -39,7 +39,10 @@ export default function Home() {
         )}
 
         {liffError && (
-          <p className="text-red-500 text-sm text-center w-full mb-2">{liffError}</p>
+          <p className="text-red-500 text-sm text-center w-full mb-2">LIFF: {liffError}</p>
+        )}
+        {authError && (
+          <p className="text-red-500 text-sm text-center w-full mb-2">Auth: {authError}</p>
         )}
 
         {liff && !isLoggedIn && (

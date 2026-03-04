@@ -9,6 +9,7 @@ interface LIFFContextValue {
   isLoading: boolean;
   isLoggedIn: boolean;
   liffError: string | null;
+  authError: string | null;
   logout: () => void;
 }
 
@@ -17,53 +18,52 @@ const LIFFContext = createContext<LIFFContextValue>({
   isLoading: true,
   isLoggedIn: false,
   liffError: null,
+  authError: null,
   logout: () => {},
 });
 
-async function signInWithLINE(liff: Liff) {
+async function signInWithLINE(liff: Liff): Promise<string | null> {
   const idToken = liff.getIDToken();
   if (!idToken) {
-    console.error("[signInWithLINE] No idToken from LIFF");
-    return;
+    return "No idToken — enable 'openid' scope in your LIFF channel settings";
   }
 
   const supabase = getSupabase();
 
   // Step 1: Send LINE idToken to Edge Function for server-side verification
-  console.log("[signInWithLINE] Calling auth-line edge function...");
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/auth-line`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-      },
-      body: JSON.stringify({ idToken }),
-    }
-  );
+  let res: Response;
+  try {
+    res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/auth-line`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+  } catch (err) {
+    return `Fetch failed: ${String(err)}`;
+  }
 
   const edgeData = await res.json();
   if (!res.ok) {
-    console.error("[signInWithLINE] Edge function error:", edgeData);
-    return;
+    return `Edge function error (${res.status}): ${JSON.stringify(edgeData)}`;
   }
 
   const { token_hash, display_name, picture_url } = edgeData;
 
   // Step 2: Exchange the token hash for a real Supabase session
-  console.log("[signInWithLINE] Exchanging token for session...");
   const { data, error } = await supabase.auth.verifyOtp({
     token_hash,
     type: "email",
   });
 
   if (error || !data.user) {
-    console.error("[signInWithLINE] verifyOtp failed:", error?.message);
-    return;
+    return `verifyOtp failed: ${error?.message ?? "no user returned"}`;
   }
-
-  console.log("[signInWithLINE] Session created for", data.user.id);
 
   // Step 3: Upsert profile — fall back to liff.getProfile() if token had no name/picture
   let finalName = display_name;
@@ -80,15 +80,16 @@ async function signInWithLINE(liff: Liff) {
   );
 
   if (upsertError) {
-    console.error("[signInWithLINE] Profile upsert failed:", upsertError.message);
-  } else {
-    console.log("[signInWithLINE] Profile upserted successfully");
+    return `Profile upsert failed: ${upsertError.message}`;
   }
+
+  return null; // success
 }
 
 function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [liffObject, setLiffObject] = useState<Liff | null>(null);
   const [liffError, setLiffError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -107,7 +108,8 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
             setIsLoggedIn(liff.isLoggedIn());
 
             if (liff.isLoggedIn()) {
-              await signInWithLINE(liff);
+              const err = await signInWithLINE(liff);
+              if (err) setAuthError(err);
             }
           })
           .catch((error: Error) => {
@@ -130,6 +132,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isLoggedIn,
     liffError,
+    authError,
     logout,
   };
   return <LIFFContext.Provider value={value}>{children}</LIFFContext.Provider>;
