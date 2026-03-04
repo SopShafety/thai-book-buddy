@@ -2,6 +2,7 @@
 
 import { Liff } from "@line/liff";
 import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../utils/supabase";
 
 interface LIFFContextValue {
   liff: Liff | null;
@@ -14,6 +15,40 @@ const LIFFContext = createContext<LIFFContextValue>({
   isLoading: true,
   liffError: null,
 });
+
+async function signInWithLINE(liff: Liff) {
+  const idToken = liff.getIDToken();
+  if (!idToken) return;
+
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "kakao", // Supabase uses "kakao" as the OIDC provider name for LINE — see note below
+    token: idToken,
+  });
+
+  if (error) {
+    console.error("Supabase sign-in failed:", error.message);
+    return;
+  }
+
+  const user = data.user;
+  if (!user) return;
+
+  const profile = await liff.getProfile();
+
+  // Upsert profile row — safe to call on every login
+  const { error: upsertError } = await supabase.from("profiles").upsert(
+    {
+      id: user.id,
+      display_name: profile.displayName,
+      picture_url: profile.pictureUrl ?? null,
+    },
+    { onConflict: "id" }
+  );
+
+  if (upsertError) {
+    console.error("Profile upsert failed:", upsertError.message);
+  }
+}
 
 function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [liffObject, setLiffObject] = useState<Liff | null>(null);
@@ -29,9 +64,13 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
         console.log("LIFF init...");
         liff
           .init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! })
-          .then(() => {
+          .then(async () => {
             console.log("LIFF init succeeded.");
             setLiffObject(liff);
+
+            if (liff.isLoggedIn()) {
+              await signInWithLINE(liff);
+            }
           })
           .catch((error: Error) => {
             console.log("LIFF init failed.");
