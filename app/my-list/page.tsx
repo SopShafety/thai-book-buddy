@@ -134,7 +134,7 @@ export default function MyListPage() {
     <div className="flex flex-col w-full h-[100dvh] bg-white">
       {/* Header */}
       <div className="shrink-0 px-[16px] pt-[16px] pb-[12px] border-b border-gray-100">
-        <p className="font-[family-name:var(--font-jakarta)] font-semibold text-[20px] text-black">
+        <p className="font-[family-name:var(--font-prompt)] font-semibold text-[20px] text-black">
           รายการของฉัน
         </p>
         {publishers.length > 0 && (
