@@ -60,7 +60,7 @@ export default function OnboardingForm() {
             value={age}
             onChange={(e) => setAge(e.target.value)}
             placeholder="เช่น 25"
-            className="h-[52px] w-full rounded-[8px] border border-gray-300 px-[16px] text-[16px] font-[family-name:var(--font-sarabun)] outline-none focus:border-[#07c755]"
+            className="h-[52px] w-full rounded-[8px] border border-gray-300 px-[16px] text-[16px] font-[family-name:var(--font-sarabun)] outline-none focus:border-[#4F46E5]"
           />
         </div>
 
@@ -77,7 +77,7 @@ export default function OnboardingForm() {
                 onClick={() => setGender(opt.value)}
                 className={`h-[52px] rounded-[8px] border text-[16px] font-[family-name:var(--font-sarabun)] transition-all ${
                   gender === opt.value
-                    ? "border-[#07c755] bg-[#07c755]/10 text-[#07c755] font-medium"
+                    ? "border-[#4F46E5] bg-[#4F46E5]/10 text-[#4F46E5] font-medium"
                     : "border-gray-300 bg-white text-gray-700"
                 }`}
               >
@@ -97,7 +97,7 @@ export default function OnboardingForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#07c755] active:scale-95 transition-all disabled:opacity-60"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#4F46E5] active:scale-95 transition-all disabled:opacity-60"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white leading-normal">
               {submitting ? "กำลังบันทึก..." : "ยืนยัน"}

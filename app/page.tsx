@@ -45,8 +45,8 @@ export default function Home() {
 
         {liff && !isLoggedIn && (
           <button
-            onClick={() => liff.login()}
-            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#07c755] active:scale-95 transition-all"
+            onClick={() => liff.login({ botPrompt: "normal" })}
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#4F46E5] active:scale-95 transition-all"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white leading-normal">
               Login with LINE
