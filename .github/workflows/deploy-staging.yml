@@ -10,4 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel staging deployment
-        run: curl -X POST ${{ secrets.VERCEL_STAGING_DEPLOY_HOOK }}
+        run: |
+          echo "Triggering deploy hook..."
+          curl -v -X POST --data "" "${{ secrets.VERCEL_STAGING_DEPLOY_HOOK }}"
