@@ -9,10 +9,10 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoggedIn && !needsOnboarding) {
+    if (!isLoading && isLoggedIn && !needsOnboarding) {
       router.replace("/browse");
     }
-  }, [isLoggedIn, needsOnboarding, router]);
+  }, [isLoading, isLoggedIn, needsOnboarding, router]);
 
   return (
     <div className="flex flex-col w-full h-[100dvh] bg-white overflow-hidden">
