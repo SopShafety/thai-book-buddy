@@ -49,7 +49,7 @@ export default function BrowsePage() {
 
       if (pubs) setPublishers(pubs as Publisher[]);
       if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
-      if (user) setUserId(user.id);
+      if (user?.user) setUserId(user.user.id);
       setLoading(false);
     }
     load();
