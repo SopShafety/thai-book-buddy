@@ -14,11 +14,11 @@ export default function Home() {
         <div className="size-[167px] rounded-[40px] bg-[#d9d9d9] shrink-0" />
 
         {/* Text */}
-        <div className="flex flex-col gap-[16px] items-center text-black leading-normal">
+        <div className="flex flex-col gap-[8px] items-center text-black leading-normal">
           <p className="font-[family-name:var(--font-jakarta)] font-semibold text-[40px] whitespace-nowrap">
             BookFair Buddy
           </p>
-          <p className="font-[family-name:var(--font-sarabun)] font-light text-[32px] whitespace-nowrap">
+          <p className="font-[family-name:var(--font-prompt)] font-light text-[24px] whitespace-nowrap">
             เพื่อนช่วยป้ายยาหนังสือ
           </p>
         </div>
@@ -27,7 +27,7 @@ export default function Home() {
       {/* Button — pinned to bottom */}
       <div className="shrink-0 px-[16px] pt-[12px] pb-[32px]">
         {isLoading && (
-          <div className="flex h-[56px] w-full items-center justify-center rounded-[28px] bg-gray-100">
+          <div className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-gray-100">
             <p className="text-gray-400 text-[20px] whitespace-nowrap">Loading...</p>
           </div>
         )}
@@ -39,7 +39,7 @@ export default function Home() {
         {liff && !isLoggedIn && (
           <button
             onClick={() => (liff.login as (config?: { redirectUri?: string; botPrompt?: string }) => void)({ botPrompt: "normal" })}
-            className="flex h-[56px] w-full items-center justify-center rounded-[28px] bg-[#4f46e5] active:scale-95 transition-all"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#4f46e5] active:scale-95 transition-all"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white leading-normal whitespace-nowrap">
               Login with LINE
@@ -50,7 +50,7 @@ export default function Home() {
         {liff && isLoggedIn && (
           <button
             onClick={logout}
-            className="flex h-[56px] w-full items-center justify-center rounded-[28px] border border-gray-300 bg-white active:scale-95 transition-all"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] border border-gray-300 bg-white active:scale-95 transition-all"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-gray-700 leading-normal whitespace-nowrap">
               Logout
