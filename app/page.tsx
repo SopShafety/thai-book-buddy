@@ -1,8 +1,9 @@
 "use client";
 import { useLIFF } from "../providers/liff-providers";
+import OnboardingForm from "../components/OnboardingForm";
 
 export default function Home() {
-  const { liff, liffError, authError, isLoading, isLoggedIn, logout } = useLIFF();
+  const { liff, liffError, isLoading, isLoggedIn, needsOnboarding, logout } = useLIFF();
 
   return (
     <div className="relative w-full h-[100dvh] bg-white overflow-hidden">
@@ -41,9 +42,6 @@ export default function Home() {
         {liffError && (
           <p className="text-red-500 text-sm text-center w-full mb-2">LIFF: {liffError}</p>
         )}
-        {authError && (
-          <p className="text-red-500 text-sm text-center w-full mb-2">Auth: {authError}</p>
-        )}
 
         {liff && !isLoggedIn && (
           <button
@@ -67,6 +65,9 @@ export default function Home() {
           </button>
         )}
       </div>
+
+      {/* Onboarding overlay — shown after first login if age/gender not yet collected */}
+      {isLoggedIn && needsOnboarding && <OnboardingForm />}
     </div>
   );
 }

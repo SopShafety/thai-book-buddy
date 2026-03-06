@@ -8,24 +8,36 @@ interface LIFFContextValue {
   liff: Liff | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  needsOnboarding: boolean;
   liffError: string | null;
   authError: string | null;
   logout: () => void;
+  completeProfile: (age: number, gender: string) => Promise<string | null>;
 }
 
 const LIFFContext = createContext<LIFFContextValue>({
   liff: null,
   isLoading: true,
   isLoggedIn: false,
+  needsOnboarding: false,
   liffError: null,
   authError: null,
   logout: () => {},
+  completeProfile: async () => null,
 });
 
-async function signInWithLINE(liff: Liff): Promise<string | null> {
+// Returns null on success, error string on failure.
+// Also returns whether the profile needs onboarding (age/gender missing).
+async function signInWithLINE(
+  liff: Liff
+): Promise<{ error: string | null; needsOnboarding: boolean }> {
   const accessToken = liff.getAccessToken();
   if (!accessToken) {
-    return "No accessToken from LIFF — check that the LIFF app is properly initialized";
+    return {
+      error:
+        "No accessToken from LIFF — check that the LIFF app is properly initialized",
+      needsOnboarding: false,
+    };
   }
 
   const supabase = getSupabase();
@@ -45,12 +57,15 @@ async function signInWithLINE(liff: Liff): Promise<string | null> {
       }
     );
   } catch (err) {
-    return `Fetch failed: ${String(err)}`;
+    return { error: `Fetch failed: ${String(err)}`, needsOnboarding: false };
   }
 
   const edgeData = await res.json();
   if (!res.ok) {
-    return `Edge function error (${res.status}): ${JSON.stringify(edgeData)}`;
+    return {
+      error: `Edge function error (${res.status}): ${JSON.stringify(edgeData)}`,
+      needsOnboarding: false,
+    };
   }
 
   const { token_hash, display_name, picture_url } = edgeData;
@@ -62,23 +77,35 @@ async function signInWithLINE(liff: Liff): Promise<string | null> {
   });
 
   if (error || !data.user) {
-    return `verifyOtp failed: ${error?.message ?? "no user returned"}`;
+    return {
+      error: `verifyOtp failed: ${error?.message ?? "no user returned"}`,
+      needsOnboarding: false,
+    };
   }
 
-  // Step 3: Upsert profile — edge function already got name/picture from LINE Profile API
-  const finalName = display_name;
-  const finalPicture = picture_url;
-
+  // Step 3: Upsert base profile (name + picture only — don't overwrite age/gender)
   const { error: upsertError } = await supabase.from("profiles").upsert(
-    { id: data.user.id, display_name: finalName, picture_url: finalPicture },
-    { onConflict: "id" }
+    { id: data.user.id, display_name, picture_url },
+    { onConflict: "id", ignoreDuplicates: false }
   );
 
   if (upsertError) {
-    return `Profile upsert failed: ${upsertError.message}`;
+    return {
+      error: `Profile upsert failed: ${upsertError.message}`,
+      needsOnboarding: false,
+    };
   }
 
-  return null; // success
+  // Step 4: Check if age/gender have been collected yet
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("age, gender")
+    .eq("id", data.user.id)
+    .single();
+
+  const needsOnboarding = !profile?.age || !profile?.gender;
+
+  return { error: null, needsOnboarding };
 }
 
 function LIFFProvider({ children }: { children: React.ReactNode }) {
@@ -87,10 +114,9 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
-  // Execute liff.init() when the app is initialized
   useEffect(() => {
-    // to avoid `window is not defined` error
     import("@line/liff")
       .then((liff) => liff.default)
       .then((liff) => {
@@ -103,8 +129,9 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
             setIsLoggedIn(liff.isLoggedIn());
 
             if (liff.isLoggedIn()) {
-              const err = await signInWithLINE(liff);
-              if (err) setAuthError(err);
+              const { error, needsOnboarding } = await signInWithLINE(liff);
+              if (error) setAuthError(error);
+              setNeedsOnboarding(needsOnboarding);
             }
           })
           .catch((error: Error) => {
@@ -120,15 +147,38 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
   function logout() {
     liffObject?.logout();
     setIsLoggedIn(false);
+    setNeedsOnboarding(false);
+  }
+
+  async function completeProfile(
+    age: number,
+    gender: string
+  ): Promise<string | null> {
+    const supabase = getSupabase();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return "Not logged in";
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ age, gender })
+      .eq("id", user.id);
+
+    if (error) return error.message;
+    setNeedsOnboarding(false);
+    return null;
   }
 
   const value: LIFFContextValue = {
     liff: liffObject,
     isLoading,
     isLoggedIn,
+    needsOnboarding,
     liffError,
     authError,
     logout,
+    completeProfile,
   };
   return <LIFFContext.Provider value={value}>{children}</LIFFContext.Provider>;
 }
