@@ -25,6 +25,7 @@ export default function BrowsePage() {
 
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [userId, setUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,7 @@ export default function BrowsePage() {
 
       if (pubs) setPublishers(pubs as Publisher[]);
       if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
+      if (user) setUserId(user.id);
       setLoading(false);
     }
     load();
@@ -74,23 +76,22 @@ export default function BrowsePage() {
   }, [publishers, search, activeZone]);
 
   async function handleToggle(publisherId: string) {
-    const supabase = getSupabase();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!userId) return;
 
     const isSelected = selectedIds.has(publisherId);
-    // Optimistic update
+    // Optimistic update first — instant UI response
     setSelectedIds((prev) => {
       const next = new Set(prev);
       isSelected ? next.delete(publisherId) : next.add(publisherId);
       return next;
     });
 
+    const supabase = getSupabase();
     if (isSelected) {
       await supabase.from("user_selections").delete()
-        .eq("user_id", user.id).eq("publisher_id", publisherId);
+        .eq("user_id", userId).eq("publisher_id", publisherId);
     } else {
-      await supabase.from("user_selections").insert({ user_id: user.id, publisher_id: publisherId });
+      await supabase.from("user_selections").insert({ user_id: userId, publisher_id: publisherId });
     }
   }
 
