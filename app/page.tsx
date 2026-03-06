@@ -1,18 +1,16 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useLIFF } from "../providers/liff-providers";
 import OnboardingForm from "../components/OnboardingForm";
 
 export default function Home() {
-  const { liff, liffError, isLoading, isLoggedIn, needsOnboarding, logout } = useLIFF();
-  const router = useRouter();
+  const { liff, liffError, isLoading, isLoggedIn, needsOnboarding } = useLIFF();
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && !needsOnboarding) {
-      router.replace("/browse");
+      window.location.replace("/browse");
     }
-  }, [isLoading, isLoggedIn, needsOnboarding, router]);
+  }, [isLoading, isLoggedIn, needsOnboarding]);
 
   return (
     <div className="flex flex-col w-full h-[100dvh] bg-white overflow-hidden">
