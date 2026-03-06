@@ -39,7 +39,7 @@ export default function OnboardingForm() {
 
   return (
     <div className="absolute inset-0 bg-white flex flex-col px-[16px] py-[48px]">
-      <p className="font-[family-name:var(--font-literata)] text-[28px] text-black leading-normal mb-2">
+      <p className="font-[family-name:var(--font-jakarta)] font-semibold text-[28px] text-black leading-normal mb-2">
         บอกเราเพิ่มเติม
       </p>
       <p className="font-[family-name:var(--font-prompt)] text-[16px] text-gray-500 mb-[32px]">
@@ -97,7 +97,7 @@ export default function OnboardingForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex h-[56px] w-full items-center justify-center rounded-[28px] bg-[#4f46e5] active:scale-95 transition-all disabled:opacity-60"
+            className="flex h-[56px] w-full items-center justify-center rounded-[8px] bg-[#4f46e5] active:scale-95 transition-all disabled:opacity-60"
           >
             <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-white leading-normal">
               {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
