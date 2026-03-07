@@ -197,10 +197,9 @@ export default function BrowsePage() {
               );
             })}
           </div>
-        </div>
 
-        {/* Count row */}
-        <div className="flex items-center justify-between px-[16px] py-[12px]">
+          {/* Count row */}
+          <div className="flex items-center justify-between px-[16px] pb-[12px]">
           <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
             {filtered.length} สำนักพิมพ์
             {!userLoaded && isLoggedIn && (
@@ -217,6 +216,7 @@ export default function BrowsePage() {
               </p>
             </div>
           )}
+          </div>
         </div>
 
         {/* List */}
