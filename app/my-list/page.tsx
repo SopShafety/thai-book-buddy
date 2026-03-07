@@ -297,7 +297,7 @@ export default function MyListPage() {
                         <>
                           {/* Books list */}
                           {pubBooks.length === 0 ? (
-                            <p className="font-[family-name:var(--font-jakarta)] font-light text-[14px] text-[#9c7a5b] text-center">
+                            <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] text-center">
                               ยังไม่มีหนังสือในรายการ
                             </p>
                           ) : (
