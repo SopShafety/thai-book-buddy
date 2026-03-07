@@ -15,7 +15,7 @@ const tabs = [
     href: "/my-list",
     label: "รายการของฉัน",
     icon: (active: boolean) => (
-      <Heart size={24} color={active ? "#973c00" : "#a6a09b"} fill={active ? "#973c00" : "none"} strokeWidth={1.8} />
+      <Heart size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
     ),
   },
   {
