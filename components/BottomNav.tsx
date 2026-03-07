@@ -50,7 +50,7 @@ export default function BottomNav() {
             >
               {tab.icon(active)}
               <span
-                className={`font-[family-name:var(--font-prompt)] text-[14px] leading-none ${
+                className={`font-[family-name:var(--font-prompt)] text-[14px] leading-none whitespace-nowrap ${
                   active ? "font-semibold text-[#973c00]" : "text-[#a6a09b]"
                 }`}
               >
