@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, ChevronDown, X, Plus, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -44,6 +44,9 @@ export default function MyListPage() {
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newBook, setNewBook] = useState<NewBookForm>({ title: "", price: "" });
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState<{ message: string; onUndo: () => void } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAction = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
@@ -89,15 +92,47 @@ export default function MyListPage() {
     }
   }
 
-  async function removePublisher(publisherId: string) {
+  function commitPending() {
+    if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
+    if (pendingAction.current) { pendingAction.current(); pendingAction.current = null; }
+    setToast(null);
+  }
+
+  function showToast(message: string, onUndo: () => void, action: () => Promise<void>) {
+    commitPending();
+    pendingAction.current = action;
+    setToast({ message, onUndo });
+    toastTimer.current = setTimeout(async () => {
+      await pendingAction.current?.();
+      pendingAction.current = null;
+      setToast(null);
+    }, 4000);
+  }
+
+  function removePublisher(publisherId: string) {
     if (!userId) return;
+    const idx = publishers.findIndex((p) => p.id === publisherId);
+    const removed = publishers[idx];
+    const removedBooks = books.filter((b) => b.publisher_id === publisherId);
     setPublishers((prev) => prev.filter((p) => p.id !== publisherId));
     setBooks((prev) => prev.filter((b) => b.publisher_id !== publisherId));
-    const supabase = getSupabase();
-    await Promise.all([
-      supabase.from("user_selections").delete().eq("user_id", userId).eq("publisher_id", publisherId),
-      supabase.from("user_books").delete().eq("user_id", userId).eq("publisher_id", publisherId),
-    ]);
+    showToast(
+      "ลบรายการสำเร็จ",
+      () => {
+        if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
+        pendingAction.current = null;
+        setPublishers((prev) => { const next = [...prev]; next.splice(idx, 0, removed); return next; });
+        setBooks((prev) => [...prev, ...removedBooks]);
+        setToast(null);
+      },
+      async () => {
+        const supabase = getSupabase();
+        await Promise.all([
+          supabase.from("user_selections").delete().eq("user_id", userId).eq("publisher_id", publisherId),
+          supabase.from("user_books").delete().eq("user_id", userId).eq("publisher_id", publisherId),
+        ]);
+      }
+    );
   }
 
   async function addBook(publisherId: string) {
@@ -116,10 +151,23 @@ export default function MyListPage() {
     setSaving(false);
   }
 
-  async function deleteBook(bookId: string) {
+  function deleteBook(bookId: string) {
+    const idx = books.findIndex((b) => b.id === bookId);
+    const removed = books[idx];
     setBooks((prev) => prev.filter((b) => b.id !== bookId));
-    const supabase = getSupabase();
-    await supabase.from("user_books").delete().eq("id", bookId);
+    showToast(
+      "ลบหนังสือสำเร็จ",
+      () => {
+        if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
+        pendingAction.current = null;
+        setBooks((prev) => { const next = [...prev]; next.splice(idx, 0, removed); return next; });
+        setToast(null);
+      },
+      async () => {
+        const supabase = getSupabase();
+        await supabase.from("user_books").delete().eq("id", bookId);
+      }
+    );
   }
 
   async function togglePurchased(book: Book) {
@@ -138,7 +186,7 @@ export default function MyListPage() {
   }
 
   return (
-    <div className="flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
+    <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
       <div className="flex-1 overflow-y-auto">
         {/* Header */}
         <div className="flex flex-col gap-[16px] px-[16px] pt-[24px] pb-[12px]">
@@ -352,6 +400,16 @@ export default function MyListPage() {
         </div>
       </div>
 
+      {toast && (
+        <div className="absolute bottom-[90px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
+          <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px] shadow-[3px_3px_0px_0px_#f0e4d4]">
+            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
+            <button onClick={toast.onUndo}>
+              <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
+            </button>
+          </div>
+        </div>
+      )}
       <BottomNav />
     </div>
   );

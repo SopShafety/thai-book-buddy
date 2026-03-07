@@ -21,3 +21,8 @@ a {
 
 /* Prevent iOS Safari zoom on input focus */
 input, select, textarea { font-size: 16px; }
+
+@keyframes toast-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
