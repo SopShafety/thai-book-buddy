@@ -1,23 +1,13 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { Sparkles, ChevronDown, X, Plus, Check } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, X, Plus, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
+import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
-
-interface Booth {
-  zone: string;
-  booth_number: string;
-}
-
-interface Publisher {
-  id: string;
-  name_th: string;
-  name_en: string | null;
-  booths: Booth[];
-}
+import type { Publisher } from "../../types";
 
 interface Book {
   id: string;
@@ -49,6 +39,10 @@ export default function MyListPage() {
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
+    return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
+  }, []);
+
+  useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
   }, [authLoading, isLoggedIn, router]);
 
@@ -77,7 +71,17 @@ export default function MyListPage() {
     load();
   }, [isLoggedIn]);
 
-  const totalBudget = books.reduce((sum, b) => sum + (b.price ?? 0), 0);
+  const totalBudget = useMemo(() => books.reduce((sum, b) => sum + (b.price ?? 0), 0), [books]);
+
+  const booksByPublisher = useMemo(() => {
+    const map = new Map<string, Book[]>();
+    for (const b of books) {
+      const list = map.get(b.publisher_id) ?? [];
+      list.push(b);
+      map.set(b.publisher_id, list);
+    }
+    return map;
+  }, [books]);
 
   function toggleExpand(publisherId: string) {
     setExpanded((prev) => {
@@ -90,6 +94,12 @@ export default function MyListPage() {
       setAddingFor(null);
       setNewBook({ title: "", price: "" });
     }
+  }
+
+  function cancelPending() {
+    if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
+    pendingAction.current = null;
+    setToast(null);
   }
 
   function commitPending() {
@@ -119,11 +129,9 @@ export default function MyListPage() {
     showToast(
       "ลบรายการสำเร็จ",
       () => {
-        if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
-        pendingAction.current = null;
+        cancelPending();
         setPublishers((prev) => { const next = [...prev]; next.splice(idx, 0, removed); return next; });
         setBooks((prev) => [...prev, ...removedBooks]);
-        setToast(null);
       },
       async () => {
         const supabase = getSupabase();
@@ -158,10 +166,8 @@ export default function MyListPage() {
     showToast(
       "ลบหนังสือสำเร็จ",
       () => {
-        if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
-        pendingAction.current = null;
+        cancelPending();
         setBooks((prev) => { const next = [...prev]; next.splice(idx, 0, removed); return next; });
-        setToast(null);
       },
       async () => {
         const supabase = getSupabase();
@@ -192,12 +198,7 @@ export default function MyListPage() {
         <div className="flex flex-col gap-[16px] px-[16px] pt-[24px] pb-[12px]">
           {/* Brand */}
           <div className="flex flex-col items-start">
-            <div className="flex items-center gap-[4px] mb-[4px]">
-              <Sparkles size={20} color="#8fad7a" fill="#8fad7a" />
-              <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
-                BookFair Buddy
-              </p>
-            </div>
+            <BrandHeader />
             <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
               รายการของฉัน
             </p>
@@ -248,7 +249,7 @@ export default function MyListPage() {
             </div>
           ) : (
             publishers.map((publisher) => {
-              const pubBooks = books.filter((b) => b.publisher_id === publisher.id);
+              const pubBooks = booksByPublisher.get(publisher.id) ?? [];
               const isExpanded = expanded.has(publisher.id);
               const isAdding = addingFor === publisher.id;
               const primaryBooth = publisher.booths?.[0]?.booth_number ?? "—";

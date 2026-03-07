@@ -1,18 +1,6 @@
 "use client";
 import { Heart } from "lucide-react";
-
-interface Booth {
-  zone: string;
-  booth_number: string;
-}
-
-interface Publisher {
-  id: string;
-  name_th: string;
-  name_en: string | null;
-  category: string[];
-  booths: Booth[];
-}
+import type { Publisher } from "../types";
 
 interface Props {
   publisher: Publisher;

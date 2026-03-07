@@ -1,24 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Search, X, Heart } from "lucide-react";
+import { Search, X, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
 import PublisherCard from "../../components/PublisherCard";
 import BottomNav from "../../components/BottomNav";
-
-interface Booth {
-  zone: string;
-  booth_number: string;
-}
-
-interface Publisher {
-  id: string;
-  name_th: string;
-  name_en: string | null;
-  category: string[];
-  booths: Booth[];
-}
+import BrandHeader from "../../components/BrandHeader";
+import type { Publisher } from "../../types";
 
 export default function BrowsePage() {
   const { isLoggedIn, isLoading: authLoading } = useLIFF();
@@ -132,12 +121,7 @@ export default function BrowsePage() {
       <div className="flex-1 overflow-y-auto">
         {/* Header — scrolls away */}
         <div className="px-[16px] pt-[24px] pb-[12px]">
-          <div className="flex items-center gap-[4px] mb-[4px]">
-            <Sparkles size={20} color="#8fad7a" fill="#8fad7a" />
-            <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
-              BookFair Buddy
-            </p>
-          </div>
+          <BrandHeader />
           <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
             รายชื่อผู้ออกบูธ
           </p>

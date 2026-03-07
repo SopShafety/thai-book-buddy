@@ -1,5 +1,6 @@
 "use client";
-import { Sparkles, Map } from "lucide-react";
+import { Map } from "lucide-react";
+import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 
 export default function MapPage() {
@@ -7,12 +8,7 @@ export default function MapPage() {
     <div className="flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
       {/* Header */}
       <div className="shrink-0 px-[16px] pt-[24px] pb-[12px]">
-        <div className="flex items-center gap-[4px] mb-[4px]">
-          <Sparkles size={20} color="#8fad7a" fill="#8fad7a" />
-          <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
-            BookFair Buddy
-          </p>
-        </div>
+        <BrandHeader />
         <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
           ผังงาน
         </p>
