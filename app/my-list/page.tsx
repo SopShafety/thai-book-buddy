@@ -401,7 +401,7 @@ export default function MyListPage() {
       </div>
 
       {toast && (
-        <div className="absolute bottom-[90px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
+        <div className="absolute bottom-[98px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px] shadow-[3px_3px_0px_0px_#f0e4d4]">
             <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
             <button onClick={toast.onUndo}>
