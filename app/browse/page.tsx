@@ -58,7 +58,12 @@ export default function BrowsePage() {
   // Distinct categories from publishers (strip "โซน" prefix for display)
   const categories = useMemo(() => {
     const set = new Set(publishers.flatMap((p) => p.category ?? []));
-    return ["ทั้งหมด", ...Array.from(set).sort()];
+    const sorted = Array.from(set).sort((a, b) => {
+      if (a.includes("Non-book")) return 1;
+      if (b.includes("Non-book")) return -1;
+      return a.localeCompare(b, "th");
+    });
+    return ["ทั้งหมด", ...sorted];
   }, [publishers]);
 
   // Filtered list
