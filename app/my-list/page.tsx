@@ -89,8 +89,10 @@ export default function MyListPage() {
     setPublishers((prev) => prev.filter((p) => p.id !== publisherId));
     setBooks((prev) => prev.filter((b) => b.publisher_id !== publisherId));
     const supabase = getSupabase();
-    await supabase.from("user_selections").delete()
-      .eq("user_id", userId).eq("publisher_id", publisherId);
+    await Promise.all([
+      supabase.from("user_selections").delete().eq("user_id", userId).eq("publisher_id", publisherId),
+      supabase.from("user_books").delete().eq("user_id", userId).eq("publisher_id", publisherId),
+    ]);
   }
 
   async function addBook(publisherId: string) {
