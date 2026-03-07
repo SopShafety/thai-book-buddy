@@ -75,7 +75,7 @@ export default function BrowsePage() {
     loadUserData();
   }, [isLoggedIn]);
 
-  // Distinct categories from publishers (strip "โซน" prefix for display)
+  // Distinct categories from publishers
   const categories = useMemo(() => {
     const set = new Set(publishers.flatMap((p) => p.category ?? []));
     const sorted = Array.from(set).sort((a, b) => {
@@ -100,11 +100,15 @@ export default function BrowsePage() {
     });
   }, [publishers, search, activeZone]);
 
+  // Count total booths
+  const totalBooths = useMemo(() => {
+    return publishers.reduce((sum, p) => sum + (p.booths?.length ?? 0), 0);
+  }, [publishers]);
+
   async function handleToggle(publisherId: string) {
     if (!userId) return;
 
     const isSelected = selectedIds.has(publisherId);
-    // Optimistic update first — instant UI response
     setSelectedIds((prev) => {
       const next = new Set(prev);
       isSelected ? next.delete(publisherId) : next.add(publisherId);
@@ -122,71 +126,96 @@ export default function BrowsePage() {
 
   if (!pubsLoaded) {
     return (
-      <div className="flex w-full h-[100dvh] items-center justify-center bg-white">
-        <p className="font-[family-name:var(--font-prompt)] text-gray-400 text-[18px]">กำลังโหลด...</p>
+      <div className="flex w-full h-[100dvh] items-center justify-center bg-[#fafaf8]">
+        <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[18px]">กำลังโหลด...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col w-full h-[100dvh] bg-white">
+    <div className="flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
       {/* Header */}
-      <div className="shrink-0 px-[16px] pt-[16px] pb-[12px] border-b border-gray-100">
-        <p className="font-[family-name:var(--font-prompt)] font-semibold text-[20px] text-black mb-[12px]">
-          สำนักพิมพ์
-        </p>
-        {/* Search */}
-        <div className="flex items-center gap-[8px] h-[44px] px-[12px] rounded-[8px] bg-gray-100">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" className="shrink-0">
-            <circle cx="11" cy="11" r="7" stroke="#9ca3af" strokeWidth="2" />
-            <path d="M16.5 16.5L21 21" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" />
+      <div className="shrink-0 px-[16px] pt-[24px] pb-[12px]">
+        {/* Brand */}
+        <div className="flex items-center gap-[4px] mb-[4px]">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+            <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" fill="#8fad7a" />
+            <path d="M19 16l.75 2.25L22 19l-2.25.75L19 22l-.75-2.25L16 19l2.25-.75L19 16Z" fill="#8fad7a" />
           </svg>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาสำนักพิมพ์..."
-            className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] text-[15px] text-black placeholder-gray-400 outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="shrink-0 text-gray-400">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </button>
-          )}
+          <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
+            BookFair Buddy
+          </p>
         </div>
+        <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
+          รายชื่อผู้ออกบูธ
+        </p>
+        <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282] mt-[2px]">
+          {totalBooths} บูธ
+        </p>
+      </div>
+
+      {/* Search + Filter */}
+      <div className="shrink-0">
+        {/* Search */}
+        <div className="px-[16px] py-[12px]">
+          <div className="flex items-center gap-[9px] h-[48px] px-[12px] rounded-[16px] bg-[#fafaf8] border border-[#f0e4d4]">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" className="shrink-0">
+              <circle cx="11" cy="11" r="7" stroke="#746d67" strokeWidth="1.8" />
+              <path d="M16.5 16.5L21 21" stroke="#746d67" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหาสำนักพิมพ์..."
+              className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="shrink-0 text-[#746d67]">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Category filter */}
-        <div className="flex gap-[8px] mt-[10px] overflow-x-auto pb-[2px] no-scrollbar">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveZone(cat)}
-              className={`shrink-0 px-[12px] h-[30px] rounded-full text-[13px] font-[family-name:var(--font-prompt)] transition-all ${
-                activeZone === cat
-                  ? "bg-[#4f46e5] text-white"
-                  : "bg-gray-100 text-gray-500"
-              }`}
-            >
-              {cat.replace("โซน", "").trim()}
-            </button>
-          ))}
+        <div className="flex gap-[10px] px-[16px] pb-[12px] overflow-x-auto no-scrollbar">
+          {categories.map((cat) => {
+            const active = activeZone === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveZone(cat)}
+                className={`shrink-0 px-[12px] py-[4px] rounded-[20px] text-[12px] font-[family-name:var(--font-prompt)] transition-all ${
+                  active
+                    ? "bg-[#c4855a] text-[#fafaf8] font-semibold"
+                    : "bg-[#fff8ee] border border-[#f0e4d4] text-[#9c7a5b] font-light"
+                }`}
+              >
+                {cat.replace("โซน", "").trim()}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Count */}
-      <div className="shrink-0 px-[16px] py-[8px]">
-        <p className="font-[family-name:var(--font-prompt)] text-[13px] text-gray-400">
+      <div className="shrink-0 px-[16px] py-[12px]">
+        <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
           {filtered.length} สำนักพิมพ์
-          {selectedIds.size > 0 && ` · เลือกแล้ว ${selectedIds.size} แห่ง`}
+          {!userLoaded && isLoggedIn && (
+            <span className="ml-[8px] text-[#9c7a5b]">· กำลังโหลดรายการ...</span>
+          )}
         </p>
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-[16px] flex flex-col gap-[16px] pb-[16px]">
         {filtered.length === 0 ? (
           <div className="flex items-center justify-center h-[200px]">
-            <p className="font-[family-name:var(--font-prompt)] text-gray-400 text-[15px]">ไม่พบสำนักพิมพ์</p>
+            <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
           </div>
         ) : (
           filtered.map((p) => (

@@ -21,35 +21,35 @@ interface Props {
 
 export default function PublisherCard({ publisher, selected, onToggle }: Props) {
   const booths = publisher.booths ?? [];
+  const primaryBooth = booths[0]?.booth_number ?? "—";
+  const category = publisher.category?.[0]?.replace("โซน", "").trim();
 
   return (
-    <div className="flex items-center gap-[12px] px-[16px] py-[14px] border-b border-gray-100">
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-black leading-snug truncate">
-          {publisher.name_th}
+    <div className="bg-white border border-[#fff8ee] rounded-[16px] shadow-[3px_3px_0px_0px_#f0e4d4] flex gap-[16px] items-start p-[24px]">
+      {/* Booth number */}
+      <div className="shrink-0 w-[56px]">
+        <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[24px] text-[#3d2b1a] leading-none">
+          {primaryBooth}
         </p>
-        {publisher.name_en && publisher.name_en !== publisher.name_th && (
-          <p className="font-[family-name:var(--font-jakarta)] text-[13px] text-gray-400 truncate">
-            {publisher.name_en}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0 flex flex-col gap-[16px]">
+        <div className="flex flex-col gap-[4px]">
+          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] leading-snug">
+            {publisher.name_th}
           </p>
-        )}
-        {/* Booth badges */}
-        {booths.length > 0 && (
-          <div className="flex gap-[6px] mt-[6px] flex-wrap">
-            {booths.map((b) => (
-              <span
-                key={b.booth_number}
-                className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] bg-[#4f46e5]/10 text-[#4f46e5] font-[family-name:var(--font-jakarta)] font-medium text-[12px]"
-              >
-                {b.booth_number}
-              </span>
-            ))}
-            {publisher.category?.[0] && (
-              <span className="inline-flex items-center px-[8px] py-[2px] rounded-[4px] bg-gray-100 text-gray-500 font-[family-name:var(--font-prompt)] text-[12px]">
-                {publisher.category[0].replace("โซน", "").trim()}
-              </span>
-            )}
+          {publisher.name_en && publisher.name_en !== publisher.name_th && (
+            <p className="font-[family-name:var(--font-jakarta)] font-light text-[12px] text-[#3d2b1a] leading-snug">
+              {publisher.name_en}
+            </p>
+          )}
+        </div>
+        {category && (
+          <div className="inline-flex self-start items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
+            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">
+              {category}
+            </span>
           </div>
         )}
       </div>
@@ -57,19 +57,19 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
       {/* Add / Remove button */}
       <button
         onClick={() => onToggle(publisher.id)}
-        className={`shrink-0 size-[36px] rounded-full flex items-center justify-center transition-all active:scale-90 ${
+        className={`shrink-0 size-[40px] rounded-[14px] flex items-center justify-center border shadow-[2px_2px_0px_0px_#e0d0c0] transition-all active:scale-90 ${
           selected
-            ? "bg-[#4f46e5] text-white"
-            : "bg-gray-100 text-gray-400"
+            ? "bg-[#c4855a] border-[#c4855a]"
+            : "bg-[#fafaf8] border-[#c4855a]"
         }`}
       >
         {selected ? (
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M5 12l5 5L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+            <path d="M5 12l5 5L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : (
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14" stroke="#c4855a" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
         )}
       </button>
