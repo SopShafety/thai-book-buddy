@@ -4,7 +4,7 @@ import { useLIFF } from "../providers/liff-providers";
 import OnboardingForm from "../components/OnboardingForm";
 
 export default function Home() {
-  const { liff, liffError, isLoading, isLoggedIn, needsOnboarding } = useLIFF();
+  const { liff, liffError, authError, isLoading, isLoggedIn, needsOnboarding } = useLIFF();
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && !needsOnboarding) {
@@ -41,6 +41,9 @@ export default function Home() {
         )}
         {liffError && (
           <p className="text-red-500 text-sm text-center w-full mb-2">LIFF: {liffError}</p>
+        )}
+        {authError && (
+          <p className="text-red-500 text-sm text-center w-full mb-2">Auth: {authError}</p>
         )}
         {liff && !isLoggedIn && (
           <button

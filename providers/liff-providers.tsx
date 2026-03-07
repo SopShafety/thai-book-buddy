@@ -121,7 +121,11 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
 
             if (liff.isLoggedIn()) {
               const { error, needsOnboarding } = await signInWithLINE(liff);
-              if (error) setAuthError(error);
+              if (error) {
+                setAuthError(error);
+                liff.logout();
+                setIsLoggedIn(false);
+              }
               setNeedsOnboarding(needsOnboarding);
             }
           })
