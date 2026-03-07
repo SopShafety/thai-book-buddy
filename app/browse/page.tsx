@@ -28,31 +28,51 @@ export default function BrowsePage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
-  const [loading, setLoading] = useState(true);
+  const [pubsLoaded, setPubsLoaded] = useState(false);
+  const [userLoaded, setUserLoaded] = useState(false);
 
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
   }, [authLoading, isLoggedIn, router]);
 
-  // Fetch publishers + user selections
+  // Fetch publishers immediately — they're public, no auth needed
+  useEffect(() => {
+    async function loadPublishers() {
+      const CACHE_KEY = "publishers_cache";
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        setPublishers(JSON.parse(cached));
+        setPubsLoaded(true);
+      }
+      const supabase = getSupabase();
+      const { data: pubs } = await supabase
+        .from("publishers")
+        .select("id, name_th, name_en, category, booths(zone, booth_number)")
+        .order("name_th");
+      if (pubs) {
+        setPublishers(pubs as Publisher[]);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(pubs));
+      }
+      setPubsLoaded(true);
+    }
+    loadPublishers();
+  }, []);
+
+  // Fetch user-specific data once auth is ready
   useEffect(() => {
     if (!isLoggedIn) return;
-    async function load() {
+    async function loadUserData() {
       const supabase = getSupabase();
-
-      const [{ data: pubs }, { data: user }, { data: sels }] = await Promise.all([
-        supabase.from("publishers").select("id, name_th, name_en, category, booths(zone, booth_number)").order("name_th"),
+      const [{ data: user }, { data: sels }] = await Promise.all([
         supabase.auth.getUser(),
         supabase.from("user_selections").select("publisher_id"),
       ]);
-
-      if (pubs) setPublishers(pubs as Publisher[]);
-      if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
       if (user?.user) setUserId(user.user.id);
-      setLoading(false);
+      if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
+      setUserLoaded(true);
     }
-    load();
+    loadUserData();
   }, [isLoggedIn]);
 
   // Distinct categories from publishers (strip "โซน" prefix for display)
@@ -100,7 +120,7 @@ export default function BrowsePage() {
     }
   }
 
-  if (authLoading || loading) {
+  if (!pubsLoaded) {
     return (
       <div className="flex w-full h-[100dvh] items-center justify-center bg-white">
         <p className="font-[family-name:var(--font-prompt)] text-gray-400 text-[18px]">กำลังโหลด...</p>
