@@ -8,9 +8,8 @@ const tabs = [
     label: "ค้นหา",
     icon: (active: boolean) => (
       <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M2 19h20" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M9 10h6M9 14h4" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
+        <circle cx="11" cy="11" r="7" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" />
+        <path d="M16.5 16.5L21 21" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
