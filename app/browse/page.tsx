@@ -55,9 +55,9 @@ export default function BrowsePage() {
     load();
   }, [isLoggedIn]);
 
-  // Distinct zones from publishers
-  const zones = useMemo(() => {
-    const set = new Set(publishers.flatMap((p) => p.booths?.map((b) => b.zone) ?? []));
+  // Distinct categories from publishers (strip "โซน" prefix for display)
+  const categories = useMemo(() => {
+    const set = new Set(publishers.flatMap((p) => p.category ?? []));
     return ["ทั้งหมด", ...Array.from(set).sort()];
   }, [publishers]);
 
@@ -68,10 +68,10 @@ export default function BrowsePage() {
         !search ||
         p.name_th.toLowerCase().includes(search.toLowerCase()) ||
         (p.name_en ?? "").toLowerCase().includes(search.toLowerCase());
-      const matchZone =
+      const matchCategory =
         activeZone === "ทั้งหมด" ||
-        p.booths?.some((b) => b.zone === activeZone);
-      return matchSearch && matchZone;
+        p.category?.includes(activeZone);
+      return matchSearch && matchCategory;
     });
   }, [publishers, search, activeZone]);
 
@@ -131,19 +131,19 @@ export default function BrowsePage() {
             </button>
           )}
         </div>
-        {/* Zone filter */}
+        {/* Category filter */}
         <div className="flex gap-[8px] mt-[10px] overflow-x-auto pb-[2px] no-scrollbar">
-          {zones.map((zone) => (
+          {categories.map((cat) => (
             <button
-              key={zone}
-              onClick={() => setActiveZone(zone)}
+              key={cat}
+              onClick={() => setActiveZone(cat)}
               className={`shrink-0 px-[12px] h-[30px] rounded-full text-[13px] font-[family-name:var(--font-prompt)] transition-all ${
-                activeZone === zone
+                activeZone === cat
                   ? "bg-[#4f46e5] text-white"
                   : "bg-gray-100 text-gray-500"
               }`}
             >
-              {zone === "ทั้งหมด" ? zone : `โซน ${zone}`}
+              {cat.replace("โซน", "").trim()}
             </button>
           ))}
         </div>
