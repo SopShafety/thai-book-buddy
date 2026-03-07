@@ -17,8 +17,8 @@ const tabs = [
     href: "/my-list",
     label: "รายการของฉัน",
     icon: (active: boolean) => (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path d="M5 3h14a1 1 0 0 1 1 1v17l-7-3-7 3V4a1 1 0 0 1 1-1Z" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#973c00" : "none"}>
+        <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinejoin="round" />
       </svg>
     ),
   },

@@ -57,19 +57,15 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
       {/* Add / Remove button */}
       <button
         onClick={() => onToggle(publisher.id)}
-        className={`shrink-0 size-[40px] rounded-[14px] flex items-center justify-center border shadow-[2px_2px_0px_0px_#e0d0c0] transition-all active:scale-90 ${
-          selected
-            ? "bg-[#c4855a] border-[#c4855a]"
-            : "bg-[#fafaf8] border-[#c4855a]"
-        }`}
+        className="shrink-0 size-[32px] flex items-center justify-center transition-all active:scale-90"
       >
         {selected ? (
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path d="M5 12l5 5L19 7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="32" height="32" fill="#c4855a" viewBox="0 0 24 24">
+            <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" />
           </svg>
         ) : (
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" stroke="#c4855a" strokeWidth="2.5" strokeLinecap="round" />
+          <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
+            <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke="#c4855a" strokeWidth="1.8" strokeLinejoin="round" />
           </svg>
         )}
       </button>

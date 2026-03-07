@@ -209,7 +209,7 @@ export default function BrowsePage() {
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-[4px]">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path d="M5 3h14a1 1 0 0 1 1 1v17l-7-3-7 3V4a1 1 0 0 1 1-1Z" stroke="#6a7282" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke="#6a7282" strokeWidth="1.8" strokeLinejoin="round" />
               </svg>
               <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
                 {selectedIds.size} รายการ
