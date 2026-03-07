@@ -39,9 +39,6 @@ async function signInWithLINE(
     };
   }
 
-  // Skip onboarding check if already cached
-  const onboardingCached = localStorage.getItem(ONBOARDING_KEY) === "true";
-
   const supabase = getSupabase();
 
   // Step 1: Edge Function — verify LINE token + get profile
@@ -81,20 +78,12 @@ async function signInWithLINE(
     };
   }
 
-  // Step 3: Upsert profile + optionally check onboarding — run in parallel
-  const upsertPromise = supabase.from("profiles").upsert(
-    { id: data.user.id, display_name, picture_url },
-    { onConflict: "id", ignoreDuplicates: false }
-  );
-
-  if (onboardingCached) {
-    // Don't wait for profile check — fire upsert and return immediately
-    upsertPromise.then();
-    return { error: null, needsOnboarding: false };
-  }
-
+  // Step 3: Upsert profile + check onboarding in parallel
   const [{ error: upsertError }, { data: profile }] = await Promise.all([
-    upsertPromise,
+    supabase.from("profiles").upsert(
+      { id: data.user.id, display_name, picture_url },
+      { onConflict: "id", ignoreDuplicates: false }
+    ),
     supabase.from("profiles").select("age, gender").eq("id", data.user.id).single(),
   ]);
 
@@ -103,7 +92,11 @@ async function signInWithLINE(
   }
 
   const needsOnboarding = !profile?.age || !profile?.gender;
-  if (!needsOnboarding) localStorage.setItem(ONBOARDING_KEY, "true");
+  if (needsOnboarding) {
+    localStorage.removeItem(ONBOARDING_KEY);
+  } else {
+    localStorage.setItem(ONBOARDING_KEY, "true");
+  }
 
   return { error: null, needsOnboarding };
 }
