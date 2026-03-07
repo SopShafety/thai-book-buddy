@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { Sparkles, Search, X, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
@@ -132,10 +133,7 @@ export default function BrowsePage() {
         {/* Header — scrolls away */}
         <div className="px-[16px] pt-[24px] pb-[12px]">
           <div className="flex items-center gap-[4px] mb-[4px]">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-              <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" fill="#8fad7a" />
-              <path d="M19 16l.75 2.25L22 19l-2.25.75L19 22l-.75-2.25L16 19l2.25-.75L19 16Z" fill="#8fad7a" />
-            </svg>
+            <Sparkles size={20} color="#8fad7a" fill="#8fad7a" />
             <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
               BookFair Buddy
             </p>
@@ -155,10 +153,7 @@ export default function BrowsePage() {
             <div className={`flex items-center gap-[9px] h-[48px] px-[12px] rounded-[16px] bg-[#fafaf8] border transition-colors ${
               searchFocused ? "border-[#973c00]" : "border-[#f0e4d4]"
             }`}>
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" className="shrink-0">
-                <circle cx="11" cy="11" r="7" stroke={searchFocused ? "#973c00" : "#746d67"} strokeWidth="1.8" />
-                <path d="M16.5 16.5L21 21" stroke={searchFocused ? "#973c00" : "#746d67"} strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
+              <Search size={20} color={searchFocused ? "#973c00" : "#746d67"} strokeWidth={1.8} className="shrink-0" />
               <input
                 type="text"
                 value={search}
@@ -170,9 +165,7 @@ export default function BrowsePage() {
               />
               {search && (
                 <button onClick={() => setSearch("")} className="shrink-0 text-[#746d67]">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
+                  <X size={16} strokeWidth={2} />
                 </button>
               )}
             </div>
@@ -208,9 +201,7 @@ export default function BrowsePage() {
           </p>
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-[4px]">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke="#6a7282" strokeWidth="1.8" strokeLinejoin="round" />
-              </svg>
+              <Heart size={20} color="#6a7282" strokeWidth={1.8} />
               <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
                 {selectedIds.size} รายการ
               </p>

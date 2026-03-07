@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Sparkles, ChevronDown, X, Plus, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -144,10 +145,7 @@ export default function MyListPage() {
           {/* Brand */}
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-[4px] mb-[4px]">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z" fill="#8fad7a" />
-                <path d="M19 16l.75 2.25L22 19l-2.25.75L19 22l-.75-2.25L16 19l2.25-.75L19 16Z" fill="#8fad7a" />
-              </svg>
+              <Sparkles size={20} color="#8fad7a" fill="#8fad7a" />
               <p className="font-[family-name:var(--font-jakarta)] font-bold text-[16px] text-[#8fad7a]">
                 BookFair Buddy
               </p>
@@ -229,12 +227,10 @@ export default function MyListPage() {
                         <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate">
                           {publisher.name_th}
                         </p>
-                        <svg
-                          width="20" height="20" fill="none" viewBox="0 0 24 24"
+                        <ChevronDown
+                          size={20}
                           className={`shrink-0 text-[#9c7a5b] transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                        >
-                          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        />
                       </div>
                     </button>
 
@@ -243,9 +239,7 @@ export default function MyListPage() {
                       onClick={() => removePublisher(publisher.id)}
                       className="shrink-0 size-[40px] flex items-center justify-center rounded-[14px] bg-[#fafaf8] border border-[#f0e4d4] shadow-[2px_2px_0px_0px_#e0d0c0] active:scale-90 transition-all"
                     >
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                        <path d="M18 6L6 18M6 6l12 12" stroke="#9c7a5b" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
+                      <X size={16} color="#9c7a5b" strokeWidth={2} />
                     </button>
                   </div>
 
@@ -312,9 +306,7 @@ export default function MyListPage() {
                                       }`}
                                     >
                                       {book.is_purchased && (
-                                        <svg width="10" height="10" fill="none" viewBox="0 0 24 24">
-                                          <path d="M5 12l5 5L19 7" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
+                                        <Check size={10} color="white" strokeWidth={3} />
                                       )}
                                     </button>
                                     <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
@@ -331,9 +323,7 @@ export default function MyListPage() {
                                       onClick={() => deleteBook(book.id)}
                                       className="text-[#9c7a5b] active:text-red-400 transition-colors"
                                     >
-                                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                      </svg>
+                                      <X size={16} strokeWidth={2} />
                                     </button>
                                   </div>
                                 </div>
@@ -346,9 +336,7 @@ export default function MyListPage() {
                             onClick={() => setAddingFor(publisher.id)}
                             className="flex items-center justify-center gap-[8px] h-[48px] w-full rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8]"
                           >
-                            <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
-                              <path d="M12 5v14M5 12h14" stroke="#c4855a" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
+                            <Plus size={20} color="#c4855a" strokeWidth={2} />
                             <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">
                               เพิ่มหนังสือ
                             </span>

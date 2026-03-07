@@ -1,4 +1,5 @@
 "use client";
+import { Heart } from "lucide-react";
 
 interface Booth {
   zone: string;
@@ -59,15 +60,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         onClick={() => onToggle(publisher.id)}
         className="shrink-0 size-[32px] flex items-center justify-center transition-all active:scale-90"
       >
-        {selected ? (
-          <svg width="32" height="32" fill="#c4855a" viewBox="0 0 24 24">
-            <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" />
-          </svg>
-        ) : (
-          <svg width="32" height="32" fill="none" viewBox="0 0 24 24">
-            <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke="#c4855a" strokeWidth="1.8" strokeLinejoin="round" />
-          </svg>
-        )}
+        <Heart size={32} color="#c4855a" fill={selected ? "#c4855a" : "none"} strokeWidth={1.8} />
       </button>
     </div>
   );

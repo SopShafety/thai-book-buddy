@@ -1,35 +1,28 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Search, Heart, Map } from "lucide-react";
 
 const tabs = [
   {
     href: "/browse",
     label: "ค้นหา",
     icon: (active: boolean) => (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" />
-        <path d="M16.5 16.5L21 21" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
+      <Search size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
     ),
   },
   {
     href: "/my-list",
     label: "รายการของฉัน",
     icon: (active: boolean) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#973c00" : "none"}>
-        <path d="M12 21C7 15.5 2 12.2 2 8a5 5 0 0 1 10 0 5 5 0 0 1 10 0c0 4.2-5 7.5-10 13Z" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinejoin="round" />
-      </svg>
+      <Heart size={24} color={active ? "#973c00" : "#a6a09b"} fill={active ? "#973c00" : "none"} strokeWidth={1.8} />
     ),
   },
   {
     href: "/map",
     label: "ผังงาน",
     icon: (active: boolean) => (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
-        <path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3V7Z" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M9 4v13M15 7v13" stroke={active ? "#973c00" : "#a6a09b"} strokeWidth="1.8" strokeLinecap="round" />
-      </svg>
+      <Map size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
     ),
   },
 ];
