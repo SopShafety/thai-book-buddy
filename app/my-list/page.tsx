@@ -264,8 +264,9 @@ export default function MyListPage() {
                 >
                   {/* Publisher row */}
                   <div className={`flex gap-[8px] ${pubBooks.length > 0 ? "items-start" : "items-center"}`}>
-                    <button
-                      className={`flex flex-1 min-w-0 gap-[16px] ${pubBooks.length > 0 ? "items-start" : "items-center"}`}
+                    {/* Toggle area — div avoids Safari iOS flex bug with button elements */}
+                    <div
+                      className={`flex flex-[1_0_0] min-w-px gap-[16px] cursor-pointer ${pubBooks.length > 0 ? "items-start" : "items-center"}`}
                       onClick={() => toggleExpand(publisher.id)}
                     >
                       {/* Chevron + Booth */}
@@ -281,7 +282,7 @@ export default function MyListPage() {
                         </div>
                       </div>
                       {/* Name + book count badge */}
-                      <div className="flex flex-col items-start flex-1 min-w-0 gap-[4px]">
+                      <div className="flex flex-[1_0_0] min-w-px flex-col items-start gap-[4px]">
                         <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
                           {publisher.name_th}
                         </p>
@@ -293,7 +294,7 @@ export default function MyListPage() {
                           </div>
                         )}
                       </div>
-                    </button>
+                    </div>
 
                     {/* Remove button */}
                     <button
