@@ -328,7 +328,7 @@ export default function MyListPage() {
                               value={newBook.price}
                               onChange={(e) => setNewBook((p) => ({ ...p, price: e.target.value }))}
                               placeholder="ราคา (บาท)"
-                              className="flex-1 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                              className="flex-1 min-w-0 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
                             />
                             <div className="flex shrink-0 gap-[8px]">
                               <button
