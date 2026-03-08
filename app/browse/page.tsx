@@ -193,7 +193,7 @@ export default function BrowsePage() {
           </p>
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-[4px]">
-              <Heart size={20} color="#6a7282" strokeWidth={1.8} />
+              <Heart size={20} color="#c4855a" strokeWidth={1.8} />
               <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
                 {selectedIds.size} รายการ
               </p>

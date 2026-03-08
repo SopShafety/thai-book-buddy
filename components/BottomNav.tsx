@@ -32,7 +32,7 @@ export default function BottomNav() {
 
   return (
     <nav className="shrink-0 border-t border-[#f0e4d4] bg-[#fafaf8]">
-      <div className="flex pb-[24px] pt-[12px] px-[24px] justify-between">
+      <div className="flex pb-[12px] pt-[8px] px-[24px] justify-between">
         {tabs.map((tab) => {
           const active = pathname === tab.href;
           return (
