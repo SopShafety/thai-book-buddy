@@ -48,7 +48,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         onClick={() => onToggle(publisher.id)}
         className="shrink-0 size-[32px] flex items-center justify-center transition-all active:scale-90"
       >
-        <Heart size={32} color="#c4855a" fill={selected ? "#c4855a" : "none"} strokeWidth={1.8} />
+        <Heart size={32} color={selected ? "#c4855a" : "#e2c9a6"} fill={selected ? "#c4855a" : "none"} strokeWidth={1.8} />
       </button>
     </div>
   );
