@@ -263,9 +263,9 @@ export default function MyListPage() {
                   className="bg-white border border-[#fff8ee] rounded-[16px] flex flex-col gap-[16px] p-[24px]"
                 >
                   {/* Publisher row */}
-                  <div className="flex items-center gap-[8px]">
+                  <div className="flex items-start gap-[8px]">
                     <button
-                      className="flex flex-1 min-w-0 items-center gap-[16px]"
+                      className="flex flex-1 min-w-0 items-start gap-[16px]"
                       onClick={() => toggleExpand(publisher.id)}
                     >
                       {/* Chevron + Booth */}
@@ -300,7 +300,7 @@ export default function MyListPage() {
                       onClick={() => removePublisher(publisher.id)}
                       className="shrink-0 active:scale-90 transition-all"
                     >
-                      <X size={24} color="#9c7a5b" strokeWidth={2} />
+                      <X size={24} color="#e2c9a6" strokeWidth={2} />
                     </button>
                   </div>
 
@@ -414,7 +414,7 @@ export default function MyListPage() {
       </div>
 
       {toast && (
-        <div className="absolute bottom-[98px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
+        <div className="absolute bottom-[84px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px] shadow-[3px_3px_0px_0px_#f0e4d4]">
             <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
             <button onClick={toast.onUndo}>
