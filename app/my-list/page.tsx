@@ -332,7 +332,7 @@ export default function MyListPage() {
                             <button
                               onClick={() => addBook(publisher.id)}
                               disabled={saving || !newBook.title.trim()}
-                              className={`flex-1 h-[48px] rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
+                              className={`flex flex-1 items-center justify-center h-[48px] rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
                                 newBook.title.trim()
                                   ? "bg-[#c4855a] border-[#c4855a]"
                                   : "bg-[#e2c9a6] border-[#e2c9a6]"
@@ -342,7 +342,7 @@ export default function MyListPage() {
                             </button>
                             <button
                               onClick={() => { setAddingFor(null); setNewBook({ title: "", price: "" }); }}
-                              className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                              className="flex flex-1 items-center justify-center h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
                             >
                               ยกเลิก
                             </button>
