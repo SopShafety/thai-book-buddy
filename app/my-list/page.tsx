@@ -311,7 +311,7 @@ export default function MyListPage() {
 
                       {isAdding ? (
                         /* Add book form */
-                        <div className="flex flex-col gap-[16px]">
+                        <div className="flex flex-col gap-[8px]">
                           <input
                             type="text"
                             value={newBook.title}
@@ -320,19 +320,19 @@ export default function MyListPage() {
                             autoFocus
                             className="h-[48px] w-full rounded-[16px] border bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] border-[#f0e4d4] transition-colors"
                           />
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            value={newBook.price}
-                            onChange={(e) => setNewBook((p) => ({ ...p, price: e.target.value }))}
-                            placeholder="ราคา (บาท)"
-                            className="h-[48px] w-full rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
-                          />
                           <div className="flex gap-[8px]">
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={newBook.price}
+                              onChange={(e) => setNewBook((p) => ({ ...p, price: e.target.value }))}
+                              placeholder="ราคา (บาท)"
+                              className="flex-1 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                            />
                             <button
                               onClick={() => addBook(publisher.id)}
                               disabled={saving || !newBook.title.trim()}
-                              className={`flex-1 h-[48px] rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white shadow-[2px_2px_0px_0px_#e0d0c0] transition-all ${
+                              className={`flex-1 h-[48px] rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
                                 newBook.title.trim()
                                   ? "bg-[#c4855a] border-[#c4855a]"
                                   : "bg-[#e2c9a6] border-[#e2c9a6]"
@@ -342,7 +342,7 @@ export default function MyListPage() {
                             </button>
                             <button
                               onClick={() => { setAddingFor(null); setNewBook({ title: "", price: "" }); }}
-                              className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a] shadow-[2px_2px_0px_0px_#e0d0c0]"
+                              className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
                             >
                               ยกเลิก
                             </button>
@@ -362,12 +362,12 @@ export default function MyListPage() {
                                   <div className="flex items-center gap-[8px] min-w-0">
                                     <button
                                       onClick={() => togglePurchased(book)}
-                                      className={`shrink-0 size-[20px] rounded-full border-2 flex items-center justify-center transition-all ${
+                                      className={`shrink-0 size-[24px] rounded-full border-2 flex items-center justify-center transition-all ${
                                         book.is_purchased ? "bg-[#8fad7a] border-[#8fad7a]" : "border-[#9c7a5b]"
                                       }`}
                                     >
                                       {book.is_purchased && (
-                                        <Check size={10} color="white" strokeWidth={3} />
+                                        <Check size={12} color="white" strokeWidth={3} />
                                       )}
                                     </button>
                                     <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
@@ -384,7 +384,7 @@ export default function MyListPage() {
                                       onClick={() => deleteBook(book.id)}
                                       className="text-[#9c7a5b] active:text-red-400 transition-colors"
                                     >
-                                      <X size={16} strokeWidth={2} />
+                                      <X size={24} strokeWidth={2} />
                                     </button>
                                   </div>
                                 </div>
