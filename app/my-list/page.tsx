@@ -328,13 +328,13 @@ export default function MyListPage() {
                               value={newBook.price}
                               onChange={(e) => setNewBook((p) => ({ ...p, price: e.target.value }))}
                               placeholder="ราคา (บาท)"
-                              className="flex-[1_0_0] h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                              className="flex-1 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
                             />
-                            <div className="flex flex-[1_0_0] gap-[8px]">
+                            <div className="flex shrink-0 gap-[8px]">
                               <button
                                 onClick={() => addBook(publisher.id)}
                                 disabled={saving || !newBook.title.trim()}
-                                className={`flex flex-[1_0_0] items-center justify-center h-[48px] py-px rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
+                                className={`shrink-0 h-[48px] px-[17px] py-px rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
                                   newBook.title.trim()
                                     ? "bg-[#c4855a] border-[#c4855a]"
                                     : "bg-[#e2c9a6] border-[#e2c9a6]"
@@ -344,7 +344,7 @@ export default function MyListPage() {
                               </button>
                               <button
                                 onClick={() => { setAddingFor(null); setNewBook({ title: "", price: "" }); }}
-                                className="flex flex-[1_0_0] items-center justify-center h-[48px] py-px rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                                className="shrink-0 h-[48px] px-[17px] py-px rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
                               >
                                 ยกเลิก
                               </button>
