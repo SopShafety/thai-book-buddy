@@ -208,7 +208,7 @@ export default function MyListPage() {
           </div>
 
           {/* Summary card */}
-          <div className="bg-[#f3ffeb] border border-[#c4d8b6] rounded-[16px] shadow-[3px_3px_0px_0px_#ebf1e6] p-[24px]">
+          <div className="bg-[#f3ffeb] border border-[#c4d8b6] rounded-[16px] p-[24px]">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
@@ -260,7 +260,7 @@ export default function MyListPage() {
               return (
                 <div
                   key={publisher.id}
-                  className="bg-white border border-[#fff8ee] rounded-[16px] shadow-[3px_3px_0px_0px_#f0e4d4] flex flex-col gap-[16px] p-[24px]"
+                  className="bg-white border border-[#fff8ee] rounded-[16px] flex flex-col gap-[16px] p-[24px]"
                 >
                   {/* Publisher row */}
                   <div className="flex items-center gap-[16px]">

@@ -14,7 +14,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
   const category = publisher.category?.[0]?.replace("โซน", "").trim();
 
   return (
-    <div className="bg-white border border-[#fff8ee] rounded-[16px] shadow-[3px_3px_0px_0px_#f0e4d4] flex gap-[16px] items-start p-[24px]">
+    <div className="bg-white border border-[#fff8ee] rounded-[16px] flex gap-[16px] items-start p-[24px]">
       {/* Booth number */}
       <div className="shrink-0 w-[56px]">
         <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[24px] text-[#3d2b1a] leading-none">
