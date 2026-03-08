@@ -263,9 +263,9 @@ export default function MyListPage() {
                   className="bg-white border border-[#fff8ee] rounded-[16px] flex flex-col gap-[16px] p-[24px]"
                 >
                   {/* Publisher row */}
-                  <div className="flex items-start gap-[8px]">
+                  <div className={`flex gap-[8px] ${pubBooks.length > 0 ? "items-start" : "items-center"}`}>
                     <button
-                      className="flex flex-1 min-w-0 items-start gap-[16px]"
+                      className={`flex flex-1 min-w-0 gap-[16px] ${pubBooks.length > 0 ? "items-start" : "items-center"}`}
                       onClick={() => toggleExpand(publisher.id)}
                     >
                       {/* Chevron + Booth */}
@@ -285,7 +285,7 @@ export default function MyListPage() {
                         <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
                           {publisher.name_th}
                         </p>
-                        {!isExpanded && pubBooks.length > 0 && (
+                        {pubBooks.length > 0 && (
                           <div className="inline-flex items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
                             <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">
                               {pubBooks.length} เล่ม
@@ -351,11 +351,7 @@ export default function MyListPage() {
                       ) : (
                         <>
                           {/* Books list */}
-                          {pubBooks.length === 0 ? (
-                            <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] text-center">
-                              ยังไม่มีหนังสือในรายการ
-                            </p>
-                          ) : (
+                          {pubBooks.length > 0 && (
                             <div className="flex flex-col gap-[8px] bg-[#fff8ee] rounded-[8px] p-[12px]">
                               {pubBooks.map((book) => (
                                 <div key={book.id} className="flex items-center justify-between">
