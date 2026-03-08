@@ -31,6 +31,23 @@ const ONBOARDING_KEY = "onboarding_complete";
 async function signInWithLINE(
   liff: Liff
 ): Promise<{ error: string | null; needsOnboarding: boolean }> {
+  const supabase = getSupabase();
+
+  // Fast path: reuse existing valid session
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("age, gender")
+      .eq("id", session.user.id)
+      .single();
+    const needsOnboarding = !profile?.age || !profile?.gender;
+    if (needsOnboarding) localStorage.removeItem(ONBOARDING_KEY);
+    else localStorage.setItem(ONBOARDING_KEY, "true");
+    return { error: null, needsOnboarding };
+  }
+
+  // Slow path: full edge function + verifyOtp flow
   const accessToken = liff.getAccessToken();
   if (!accessToken) {
     return {
@@ -41,8 +58,6 @@ async function signInWithLINE(
 
   // Skip onboarding check if already cached
   const onboardingCached = localStorage.getItem(ONBOARDING_KEY) === "true";
-
-  const supabase = getSupabase();
 
   // Step 1: Edge Function — verify LINE token + get profile
   let res: Response;
