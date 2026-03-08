@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, X, Plus, Check } from "lucide-react";
+import { ChevronRight, X, Plus, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -208,7 +208,7 @@ export default function MyListPage() {
           </div>
 
           {/* Summary card */}
-          <div className="bg-[#f3ffeb] border border-[#c4d8b6] rounded-[16px] p-[24px]">
+          <div className="bg-[#eefdff] border border-[#b1dce4] rounded-[16px] p-[24px]">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
@@ -216,14 +216,14 @@ export default function MyListPage() {
                   {publishers.length}
                 </p>
               </div>
-              <div className="w-px self-stretch bg-[#c4d8b6]" />
+              <div className="w-px self-stretch bg-[#b1dce4]" />
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">หนังสือ</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none">
                   {books.length}
                 </p>
               </div>
-              <div className="w-px self-stretch bg-[#c4d8b6]" />
+              <div className="w-px self-stretch bg-[#b1dce4]" />
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">ราคา</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#c4855a] leading-none">
@@ -263,35 +263,44 @@ export default function MyListPage() {
                   className="bg-white border border-[#fff8ee] rounded-[16px] flex flex-col gap-[16px] p-[24px]"
                 >
                   {/* Publisher row */}
-                  <div className="flex items-center gap-[16px]">
+                  <div className="flex items-center gap-[8px]">
                     <button
                       className="flex flex-1 min-w-0 items-center gap-[16px]"
                       onClick={() => toggleExpand(publisher.id)}
                     >
-                      {/* Booth number */}
-                      <div className="shrink-0 w-[56px]">
-                        <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[24px] text-[#3d2b1a] leading-none">
-                          {primaryBooth}
-                        </p>
+                      {/* Chevron + Booth */}
+                      <div className="flex items-center gap-[4px] shrink-0">
+                        <ChevronRight
+                          size={24}
+                          className={`shrink-0 text-[#9c7a5b] transition-transform ${isExpanded ? "-rotate-90" : ""}`}
+                        />
+                        <div className="w-[56px]">
+                          <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[24px] text-[#3d2b1a] leading-none">
+                            {primaryBooth}
+                          </p>
+                        </div>
                       </div>
-                      {/* Name + chevron */}
-                      <div className="flex items-center gap-[4px] min-w-0">
-                        <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate">
+                      {/* Name + book count badge */}
+                      <div className="flex flex-col items-start flex-1 min-w-0 gap-[4px]">
+                        <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
                           {publisher.name_th}
                         </p>
-                        <ChevronDown
-                          size={20}
-                          className={`shrink-0 text-[#9c7a5b] transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                        />
+                        {!isExpanded && pubBooks.length > 0 && (
+                          <div className="inline-flex items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
+                            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">
+                              {pubBooks.length} เล่ม
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </button>
 
                     {/* Remove button */}
                     <button
                       onClick={() => removePublisher(publisher.id)}
-                      className="shrink-0 size-[40px] flex items-center justify-center rounded-[14px] bg-[#fafaf8] border border-[#f0e4d4] shadow-[2px_2px_0px_0px_#e0d0c0] active:scale-90 transition-all"
+                      className="shrink-0 active:scale-90 transition-all"
                     >
-                      <X size={16} color="#9c7a5b" strokeWidth={2} />
+                      <X size={24} color="#9c7a5b" strokeWidth={2} />
                     </button>
                   </div>
 
@@ -386,9 +395,9 @@ export default function MyListPage() {
                           {/* Add book button */}
                           <button
                             onClick={() => setAddingFor(publisher.id)}
-                            className="flex items-center justify-center gap-[8px] h-[48px] w-full rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8]"
+                            className="flex items-center justify-center gap-[4px] w-full"
                           >
-                            <Plus size={20} color="#c4855a" strokeWidth={2} />
+                            <Plus size={24} color="#c4855a" strokeWidth={2} />
                             <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">
                               เพิ่มหนังสือ
                             </span>
