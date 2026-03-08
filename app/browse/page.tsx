@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
@@ -21,18 +21,24 @@ export default function BrowsePage() {
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [pubsLoaded, setPubsLoaded] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
+  const togglingRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
   }, [authLoading, isLoggedIn, router]);
 
   useEffect(() => {
+    const CACHE_KEY = "publishers_cache";
+    const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
     async function loadPublishers() {
-      const CACHE_KEY = "publishers_cache";
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        setPublishers(JSON.parse(cached));
-        setPubsLoaded(true);
+        const { data, ts } = JSON.parse(cached);
+        if (Date.now() - ts < CACHE_TTL) {
+          setPublishers(data);
+          setPubsLoaded(true);
+        }
       }
       const supabase = getSupabase();
       const { data: pubs } = await supabase
@@ -41,7 +47,7 @@ export default function BrowsePage() {
         .order("name_th");
       if (pubs) {
         setPublishers(pubs as Publisher[]);
-        localStorage.setItem(CACHE_KEY, JSON.stringify(pubs));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: pubs, ts: Date.now() }));
       }
       setPubsLoaded(true);
     }
@@ -91,7 +97,8 @@ export default function BrowsePage() {
   );
 
   async function handleToggle(publisherId: string) {
-    if (!userId) return;
+    if (!userId || togglingRef.current.has(publisherId)) return;
+    togglingRef.current.add(publisherId);
     const isSelected = selectedIds.has(publisherId);
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -105,6 +112,7 @@ export default function BrowsePage() {
     } else {
       await supabase.from("user_selections").insert({ user_id: userId, publisher_id: publisherId });
     }
+    togglingRef.current.delete(publisherId);
   }
 
   if (!pubsLoaded) {

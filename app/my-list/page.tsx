@@ -34,6 +34,7 @@ export default function MyListPage() {
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newBook, setNewBook] = useState<NewBookForm>({ title: "", price: "" });
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [toast, setToast] = useState<{ message: string; onUndo: () => void } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
@@ -144,7 +145,8 @@ export default function MyListPage() {
   }
 
   async function addBook(publisherId: string) {
-    if (!userId || !newBook.title.trim()) return;
+    if (!userId || !newBook.title.trim() || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     const price = newBook.price ? parseInt(newBook.price, 10) : null;
     const supabase = getSupabase();
@@ -156,6 +158,7 @@ export default function MyListPage() {
     if (data) setBooks((prev) => [...prev, data as Book]);
     setNewBook({ title: "", price: "" });
     setAddingFor(null);
+    savingRef.current = false;
     setSaving(false);
   }
 

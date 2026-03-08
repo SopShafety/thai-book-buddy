@@ -31,6 +31,23 @@ const ONBOARDING_KEY = "onboarding_complete";
 async function signInWithLINE(
   liff: Liff
 ): Promise<{ error: string | null; needsOnboarding: boolean }> {
+  const supabase = getSupabase();
+
+  // Fast path: reuse existing valid session
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("age, gender")
+      .eq("id", session.user.id)
+      .single();
+    const needsOnboarding = !profile?.age || !profile?.gender;
+    if (needsOnboarding) localStorage.removeItem(ONBOARDING_KEY);
+    else localStorage.setItem(ONBOARDING_KEY, "true");
+    return { error: null, needsOnboarding };
+  }
+
+  // Slow path: full edge function + verifyOtp flow
   const accessToken = liff.getAccessToken();
   if (!accessToken) {
     return {
@@ -39,7 +56,8 @@ async function signInWithLINE(
     };
   }
 
-  const supabase = getSupabase();
+  // Skip onboarding check if already cached
+  const onboardingCached = localStorage.getItem(ONBOARDING_KEY) === "true";
 
   // Step 1: Edge Function — verify LINE token + get profile
   let res: Response;
@@ -78,12 +96,20 @@ async function signInWithLINE(
     };
   }
 
-  // Step 3: Upsert profile + check onboarding in parallel
+  // Step 3: Upsert profile + optionally check onboarding — run in parallel
+  const upsertPromise = supabase.from("profiles").upsert(
+    { id: data.user.id, display_name, picture_url },
+    { onConflict: "id", ignoreDuplicates: false }
+  );
+
+  if (onboardingCached) {
+    // Don't wait for profile check — fire upsert and return immediately
+    upsertPromise.then();
+    return { error: null, needsOnboarding: false };
+  }
+
   const [{ error: upsertError }, { data: profile }] = await Promise.all([
-    supabase.from("profiles").upsert(
-      { id: data.user.id, display_name, picture_url },
-      { onConflict: "id", ignoreDuplicates: false }
-    ),
+    upsertPromise,
     supabase.from("profiles").select("age, gender").eq("id", data.user.id).single(),
   ]);
 
@@ -92,11 +118,7 @@ async function signInWithLINE(
   }
 
   const needsOnboarding = !profile?.age || !profile?.gender;
-  if (needsOnboarding) {
-    localStorage.removeItem(ONBOARDING_KEY);
-  } else {
-    localStorage.setItem(ONBOARDING_KEY, "true");
-  }
+  if (!needsOnboarding) localStorage.setItem(ONBOARDING_KEY, "true");
 
   return { error: null, needsOnboarding };
 }
