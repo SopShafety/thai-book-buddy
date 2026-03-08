@@ -171,7 +171,7 @@ export default function BrowsePage() {
                 <button
                   key={cat}
                   onClick={() => setActiveZone(cat)}
-                  className={`shrink-0 px-[12px] py-[4px] rounded-[20px] text-[12px] font-[family-name:var(--font-prompt)] transition-all ${
+                  className={`shrink-0 px-[12px] py-[4px] rounded-[20px] text-[14px] font-[family-name:var(--font-prompt)] transition-all ${
                     active
                       ? "bg-[#c4855a] text-[#fafaf8] font-semibold"
                       : "bg-[#fff8ee] border border-[#f0e4d4] text-[#9c7a5b] font-light"
