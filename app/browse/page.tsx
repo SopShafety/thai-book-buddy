@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, Heart } from "lucide-react";
+import { Search, X, Heart, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
@@ -22,6 +22,12 @@ export default function BrowsePage() {
   const [pubsLoaded, setPubsLoaded] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
   const togglingRef = useRef<Set<string>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
@@ -105,6 +111,11 @@ export default function BrowsePage() {
       isSelected ? next.delete(publisherId) : next.add(publisherId);
       return next;
     });
+    if (!isSelected) {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      setToast("เพิ่มในรายการแล้ว");
+      toastTimer.current = setTimeout(() => setToast(null), 2500);
+    }
     const supabase = getSupabase();
     if (isSelected) {
       await supabase.from("user_selections").delete()
@@ -124,7 +135,7 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
+    <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
       {/* Scrollable area — header scrolls away, search stays sticky */}
       <div className="flex-1 overflow-y-auto">
         {/* Header — scrolls away */}
@@ -221,6 +232,16 @@ export default function BrowsePage() {
         </div>
       </div>
 
+      {toast && (
+        <div className="absolute bottom-[84px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
+          <div className="flex items-center gap-[12px] h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
+            <div className="shrink-0 size-[20px] rounded-full bg-[#c4855a] flex items-center justify-center">
+              <Check size={12} color="white" strokeWidth={3} />
+            </div>
+            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast}</p>
+          </div>
+        </div>
+      )}
       <BottomNav />
     </div>
   );
