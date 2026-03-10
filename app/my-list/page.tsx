@@ -263,14 +263,14 @@ export default function MyListPage() {
                   className="bg-white border border-[#fff8ee] rounded-[16px] flex flex-col gap-[16px] p-[24px]"
                 >
                   {/* Publisher row */}
-                  <div className={`flex gap-[8px] ${pubBooks.length > 0 ? "items-start" : "items-center"}`}>
+                  <div className="flex gap-[8px] items-start">
                     {/* Toggle area — div avoids Safari iOS flex bug with button elements */}
                     <div
-                      className={`flex flex-[1_0_0] min-w-px gap-[16px] cursor-pointer ${pubBooks.length > 0 ? "items-start" : "items-center"}`}
+                      className="flex flex-[1_0_0] min-w-px gap-[16px] items-start cursor-pointer"
                       onClick={() => toggleExpand(publisher.id)}
                     >
                       {/* Chevron + Booth */}
-                      <div className="flex items-center gap-[4px] shrink-0">
+                      <div className="flex items-start gap-[4px] shrink-0">
                         <ChevronRight
                           size={24}
                           className={`shrink-0 text-[#9c7a5b] transition-transform ${isExpanded ? "-rotate-90" : ""}`}
