@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, X, Plus, Check } from "lucide-react";
+import { ChevronRight, X, Plus, Check, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -286,9 +286,15 @@ export default function MyListPage() {
                         <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
                           {publisher.name_th}
                         </p>
-                        {pubBooks.length > 0 && (
-                          <div className="inline-flex items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
-                            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">
+                        {publisher.name_en && (
+                          <p className="font-[family-name:var(--font-jakarta)] font-light text-[12px] text-[#3d2b1a] truncate w-full">
+                            {publisher.name_en}
+                          </p>
+                        )}
+                        {pubBooks.length > 0 && !isExpanded && (
+                          <div className="inline-flex items-center gap-[4px] px-[12px] py-[4px] rounded-[20px] bg-[#f0e4d4]">
+                            <BookOpen size={16} color="#973c00" strokeWidth={1.5} />
+                            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#973c00]">
                               {pubBooks.length} เล่ม
                             </span>
                           </div>
@@ -299,9 +305,9 @@ export default function MyListPage() {
                     {/* Remove button */}
                     <button
                       onClick={() => removePublisher(publisher.id)}
-                      className="shrink-0 active:scale-90 transition-all"
+                      className="shrink-0 size-[32px] rounded-[20px] bg-[#fff8ee] flex items-center justify-center active:scale-90 transition-all"
                     >
-                      <X size={24} color="#e2c9a6" strokeWidth={2} />
+                      <X size={16} color="#9c7a5b" strokeWidth={2} />
                     </button>
                   </div>
 
