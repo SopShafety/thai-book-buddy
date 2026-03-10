@@ -307,7 +307,7 @@ export default function MyListPage() {
                       onClick={() => removePublisher(publisher.id)}
                       className="shrink-0 size-[32px] rounded-[20px] bg-[#fff8ee] flex items-center justify-center active:scale-90 transition-all"
                     >
-                      <X size={16} color="#9c7a5b" strokeWidth={2} />
+                      <X size={16} color="#e2c9a6" strokeWidth={2} />
                     </button>
                   </div>
 
