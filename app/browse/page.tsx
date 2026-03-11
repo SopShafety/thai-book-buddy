@@ -21,6 +21,8 @@ export default function BrowsePage() {
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [pubsLoaded, setPubsLoaded] = useState(false);
   const [userLoaded, setUserLoaded] = useState(false);
+  const [bookCounts, setBookCounts] = useState<Map<string, number>>(new Map());
+  const [confirmPublisherId, setConfirmPublisherId] = useState<string | null>(null);
   const togglingRef = useRef<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,12 +66,20 @@ export default function BrowsePage() {
     if (!isLoggedIn) return;
     async function loadUserData() {
       const supabase = getSupabase();
-      const [{ data: user }, { data: sels }] = await Promise.all([
+      const [{ data: user }, { data: sels }, { data: books }] = await Promise.all([
         supabase.auth.getUser(),
         supabase.from("user_selections").select("publisher_id"),
+        supabase.from("user_books").select("publisher_id"),
       ]);
       if (user?.user) setUserId(user.user.id);
       if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
+      if (books) {
+        const counts = new Map<string, number>();
+        for (const b of books as { publisher_id: string }[]) {
+          counts.set(b.publisher_id, (counts.get(b.publisher_id) ?? 0) + 1);
+        }
+        setBookCounts(counts);
+      }
       setUserLoaded(true);
     }
     loadUserData();
@@ -104,8 +114,16 @@ export default function BrowsePage() {
 
   async function handleToggle(publisherId: string) {
     if (!userId || togglingRef.current.has(publisherId)) return;
-    togglingRef.current.add(publisherId);
     const isSelected = selectedIds.has(publisherId);
+    if (isSelected && (bookCounts.get(publisherId) ?? 0) > 0) {
+      setConfirmPublisherId(publisherId);
+      return;
+    }
+    await doRemoveOrAdd(publisherId, isSelected);
+  }
+
+  async function doRemoveOrAdd(publisherId: string, isSelected: boolean) {
+    togglingRef.current.add(publisherId);
     setSelectedIds((prev) => {
       const next = new Set(prev);
       isSelected ? next.delete(publisherId) : next.add(publisherId);
@@ -119,9 +137,9 @@ export default function BrowsePage() {
     const supabase = getSupabase();
     if (isSelected) {
       await supabase.from("user_selections").delete()
-        .eq("user_id", userId).eq("publisher_id", publisherId);
+        .eq("user_id", userId!).eq("publisher_id", publisherId);
     } else {
-      await supabase.from("user_selections").insert({ user_id: userId, publisher_id: publisherId });
+      await supabase.from("user_selections").insert({ user_id: userId!, publisher_id: publisherId });
     }
     togglingRef.current.delete(publisherId);
   }
@@ -242,6 +260,44 @@ export default function BrowsePage() {
           </div>
         </div>
       )}
+
+      {confirmPublisherId && (() => {
+        const pub = publishers.find((p) => p.id === confirmPublisherId);
+        const count = bookCounts.get(confirmPublisherId) ?? 0;
+        return (
+          <div className="absolute inset-0 z-30 flex items-end justify-center bg-black/40" onClick={() => setConfirmPublisherId(null)}>
+            <div className="w-full bg-[#fafaf8] rounded-t-[24px] p-[24px] flex flex-col gap-[16px]" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-col gap-[8px]">
+                <p className="font-[family-name:var(--font-prompt)] font-semibold text-[18px] text-[#3d2b1a]">
+                  ลบสำนักพิมพ์นี้?
+                </p>
+                <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+                  {pub?.name_th} มีหนังสือในรายการ {count} เล่ม หากลบสำนักพิมพ์นี้ หนังสือทั้งหมดจะถูกลบออกด้วย
+                </p>
+              </div>
+              <div className="flex gap-[8px]">
+                <button
+                  onClick={() => setConfirmPublisherId(null)}
+                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={async () => {
+                    const id = confirmPublisherId;
+                    setConfirmPublisherId(null);
+                    await doRemoveOrAdd(id, true);
+                  }}
+                  className="flex-1 h-[48px] rounded-[12px] bg-[#c4855a] font-[family-name:var(--font-prompt)] text-[16px] text-white"
+                >
+                  ลบออก
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <BottomNav />
     </div>
   );
