@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, X, Plus, Check, BookOpen } from "lucide-react";
+import { ChevronRight, X, Plus, Check, BookOpen, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -35,7 +35,9 @@ export default function MyListPage() {
   const [newBook, setNewBook] = useState<NewBookForm>({ title: "", price: "" });
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
-  const [toast, setToast] = useState<{ message: string; onUndo: () => void } | null>(null);
+  const [editingBookId, setEditingBookId] = useState<string | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [toast, setToast] = useState<{ message: string; onUndo: (() => void) | null } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
 
@@ -179,9 +181,23 @@ export default function MyListPage() {
     );
   }
 
+  async function saveBookPrice(bookId: string) {
+    const price = editPrice.trim() ? parseInt(editPrice, 10) : null;
+    setBooks((prev) => prev.map((b) => b.id === bookId ? { ...b, price } : b));
+    setEditingBookId(null);
+    setEditPrice("");
+    const supabase = getSupabase();
+    await supabase.from("user_books").update({ price }).eq("id", bookId);
+  }
+
   async function togglePurchased(book: Book) {
     const updated = !book.is_purchased;
     setBooks((prev) => prev.map((b) => b.id === book.id ? { ...b, is_purchased: updated } : b));
+    if (updated) {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      setToast({ message: "ซื้อหนังสือแล้ว 🎉", onUndo: null });
+      toastTimer.current = setTimeout(() => setToast(null), 2500);
+    }
     const supabase = getSupabase();
     await supabase.from("user_books").update({ is_purchased: updated }).eq("id", book.id);
   }
@@ -379,19 +395,55 @@ export default function MyListPage() {
                                       {book.title}
                                     </p>
                                   </div>
-                                  <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
-                                    {book.price != null && (
-                                      <p className="font-[family-name:var(--font-jakarta)] text-[16px] text-[#6a7282]">
-                                        ฿{book.price.toLocaleString()}
-                                      </p>
-                                    )}
-                                    <button
-                                      onClick={() => deleteBook(book.id)}
-                                      className="text-[#9c7a5b] active:text-red-400 transition-colors"
-                                    >
-                                      <X size={24} strokeWidth={2} />
-                                    </button>
-                                  </div>
+                                  {editingBookId === book.id ? (
+                                    <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
+                                      <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        value={editPrice}
+                                        onChange={(e) => setEditPrice(e.target.value)}
+                                        placeholder="ราคา"
+                                        autoFocus
+                                        className="w-[80px] h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                                      />
+                                      <button
+                                        onClick={() => saveBookPrice(book.id)}
+                                        className="shrink-0 h-[32px] px-[10px] rounded-[8px] bg-[#c4855a] font-[family-name:var(--font-prompt)] text-[13px] text-white"
+                                      >
+                                        บันทึก
+                                      </button>
+                                      <button
+                                        onClick={() => { setEditingBookId(null); setEditPrice(""); }}
+                                        className="shrink-0 text-[#9c7a5b]"
+                                      >
+                                        <X size={18} strokeWidth={2} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
+                                      {book.price != null && (
+                                        <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                                          ฿{book.price.toLocaleString()}
+                                        </p>
+                                      )}
+                                      {!book.is_purchased && (
+                                        <>
+                                          <button
+                                            onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); }}
+                                            className="text-[#9c7a5b] active:opacity-60 transition-opacity"
+                                          >
+                                            <Pencil size={16} strokeWidth={2} />
+                                          </button>
+                                          <button
+                                            onClick={() => deleteBook(book.id)}
+                                            className="text-[#9c7a5b] active:text-red-400 transition-colors"
+                                          >
+                                            <X size={24} strokeWidth={2} />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -422,9 +474,11 @@ export default function MyListPage() {
         <div className="absolute bottom-[84px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px] shadow-[3px_3px_0px_0px_#f0e4d4]">
             <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
-            <button onClick={toast.onUndo}>
-              <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
-            </button>
+            {toast.onUndo && (
+              <button onClick={toast.onUndo}>
+                <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
+              </button>
+            )}
           </div>
         </div>
       )}
