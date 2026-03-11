@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, X, Plus, Check, BookOpen, Pencil } from "lucide-react";
+import { ChevronRight, X, Plus, Check, BookOpen, Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -65,7 +65,7 @@ export default function MyListPage() {
       if (sels) {
         setPublishers(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          sels.map((s: any) => Array.isArray(s.publishers) ? s.publishers[0] : s.publishers).filter(Boolean) as Publisher[]
+          (sels.map((s: any) => Array.isArray(s.publishers) ? s.publishers[0] : s.publishers).filter(Boolean) as Publisher[]).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"))
         );
       }
       if (bookData) setBooks(bookData as Book[]);
@@ -472,8 +472,11 @@ export default function MyListPage() {
 
       {toast && (
         <div className="absolute bottom-[84px] left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]">
-          <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px] shadow-[3px_3px_0px_0px_#f0e4d4]">
-            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
+          <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
+            <div className="flex items-center gap-[8px]">
+              {toast.onUndo && <Trash2 size={18} color="#973c00" strokeWidth={2} />}
+              <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
+            </div>
             {toast.onUndo && (
               <button onClick={toast.onUndo}>
                 <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
