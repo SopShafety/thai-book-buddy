@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Heart, Map } from "lucide-react";
@@ -27,7 +28,7 @@ const tabs = [
   },
 ];
 
-export default function BottomNav() {
+export default memo(function BottomNav() {
   const pathname = usePathname();
 
   return (
@@ -55,4 +56,4 @@ export default function BottomNav() {
       </div>
     </nav>
   );
-}
+});

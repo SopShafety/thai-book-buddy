@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, Heart, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
@@ -18,6 +18,8 @@ export default function BrowsePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [pubsLoaded, setPubsLoaded] = useState(false);
@@ -29,7 +31,10 @@ export default function BrowsePage() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -43,10 +48,15 @@ export default function BrowsePage() {
     async function loadPublishers() {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
-        const { data, ts } = JSON.parse(cached);
-        if (Date.now() - ts < CACHE_TTL) {
-          setPublishers(data);
-          setPubsLoaded(true);
+        try {
+          const { data, ts } = JSON.parse(cached);
+          if (Date.now() - ts < CACHE_TTL) {
+            setPublishers(data);
+            setPubsLoaded(true);
+            return; // cache is fresh — skip network fetch
+          }
+        } catch {
+          localStorage.removeItem(CACHE_KEY);
         }
       }
       const supabase = getSupabase();
@@ -97,23 +107,24 @@ export default function BrowsePage() {
   }, [publishers]);
 
   const filtered = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
     return publishers.filter((p) => {
       const matchSearch =
-        !search ||
-        p.name_th.toLowerCase().includes(search.toLowerCase()) ||
-        (p.name_en ?? "").toLowerCase().includes(search.toLowerCase());
+        !q ||
+        p.name_th.toLowerCase().includes(q) ||
+        (p.name_en ?? "").toLowerCase().includes(q);
       const matchCategory =
         activeZone === "ทั้งหมด" || p.category?.includes(activeZone);
       return matchSearch && matchCategory;
     });
-  }, [publishers, search, activeZone]);
+  }, [publishers, debouncedSearch, activeZone]);
 
   const totalBooths = useMemo(
     () => publishers.reduce((sum, p) => sum + (p.booths?.length ?? 0), 0),
     [publishers]
   );
 
-  async function handleToggle(publisherId: string) {
+  const handleToggle = useCallback(async (publisherId: string) => {
     if (!userId || togglingRef.current.has(publisherId)) return;
     const isSelected = selectedIds.has(publisherId);
     if (isSelected && (bookCounts.get(publisherId) ?? 0) > 0) {
@@ -121,9 +132,9 @@ export default function BrowsePage() {
       return;
     }
     await doRemoveOrAdd(publisherId, isSelected);
-  }
+  }, [userId, selectedIds, bookCounts]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function doRemoveOrAdd(publisherId: string, isSelected: boolean) {
+  const doRemoveOrAdd = useCallback(async (publisherId: string, isSelected: boolean) => {
     togglingRef.current.add(publisherId);
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -143,7 +154,7 @@ export default function BrowsePage() {
       await supabase.from("user_selections").insert({ user_id: userId!, publisher_id: publisherId });
     }
     togglingRef.current.delete(publisherId);
-  }
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!pubsLoaded) return <LoadingScreen />;
 
@@ -173,14 +184,18 @@ export default function BrowsePage() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                  searchDebounceRef.current = setTimeout(() => setDebouncedSearch(e.target.value), 200);
+                }}
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setSearchFocused(false)}
                 placeholder="ค้นหาสำนักพิมพ์..."
                 className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="shrink-0 text-[#746d67]">
+                <button onClick={() => { setSearch(""); setDebouncedSearch(""); }} className="shrink-0 text-[#746d67]">
                   <X size={16} strokeWidth={2} />
                 </button>
               )}
