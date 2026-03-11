@@ -7,6 +7,7 @@ import { useLIFF } from "../../providers/liff-providers";
 import PublisherCard from "../../components/PublisherCard";
 import BottomNav from "../../components/BottomNav";
 import BrandHeader from "../../components/BrandHeader";
+import LoadingScreen from "../../components/LoadingScreen";
 import type { Publisher } from "../../types";
 
 export default function BrowsePage() {
@@ -144,13 +145,7 @@ export default function BrowsePage() {
     togglingRef.current.delete(publisherId);
   }
 
-  if (!pubsLoaded) {
-    return (
-      <div className="flex w-full h-[100dvh] items-center justify-center bg-[#fafaf8]">
-        <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[18px]">กำลังโหลด...</p>
-      </div>
-    );
-  }
+  if (!pubsLoaded) return <LoadingScreen />;
 
   return (
     <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
@@ -217,7 +212,15 @@ export default function BrowsePage() {
           <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
             {filtered.length} สำนักพิมพ์
             {!userLoaded && isLoggedIn && (
-              <span className="ml-[8px] text-[#9c7a5b]">· กำลังโหลด...</span>
+              <span className="ml-[8px] inline-flex items-center gap-[3px] translate-y-[1px]">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="block size-[4px] rounded-full bg-[#9c7a5b]"
+                    style={{ animation: `bounce-dot 1.2s ease-in-out ${i * 0.2}s infinite` }}
+                  />
+                ))}
+              </span>
             )}
           </p>
           {selectedIds.size > 0 && (

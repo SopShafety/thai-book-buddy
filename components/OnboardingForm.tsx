@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import { useLIFF } from "../providers/liff-providers";
 import BrandHeader from "./BrandHeader";
 
@@ -9,6 +10,15 @@ const GENDER_OPTIONS = [
   { value: "female", label: "หญิง" },
   { value: "other", label: "อื่นๆ" },
   { value: "prefer_not_to_say", label: "ไม่ระบุ" },
+];
+
+const AGE_RANGES: { value: string; label: string; num: number }[] = [
+  { value: "under_18", label: "ต่ำกว่า 18 ปี", num: 15 },
+  { value: "18_24", label: "18 – 24 ปี", num: 21 },
+  { value: "25_34", label: "25 – 34 ปี", num: 29 },
+  { value: "35_44", label: "35 – 44 ปี", num: 39 },
+  { value: "45_54", label: "45 – 54 ปี", num: 49 },
+  { value: "55_plus", label: "55 ปีขึ้นไป", num: 60 },
 ];
 
 export default function OnboardingForm() {
@@ -20,9 +30,8 @@ export default function OnboardingForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const ageNum = parseInt(age, 10);
-    if (!ageNum || ageNum < 1 || ageNum > 120) {
-      setError("กรุณากรอกอายุที่ถูกต้อง");
+    if (!age) {
+      setError("กรุณาเลือกช่วงอายุ");
       return;
     }
     if (!gender) {
@@ -31,6 +40,7 @@ export default function OnboardingForm() {
     }
     setSubmitting(true);
     setError(null);
+    const ageNum = AGE_RANGES.find((r) => r.value === age)!.num;
     const err = await completeProfile(ageNum, gender);
     if (err) {
       setError(err);
@@ -39,7 +49,7 @@ export default function OnboardingForm() {
   }
 
   return (
-    <div className="absolute inset-0 bg-[#fafaf8] flex flex-col px-[16px] pt-[24px] pb-[32px]">
+    <div className="absolute inset-0 bg-[#fafaf8] flex flex-col px-[16px] pt-[24px] pb-[32px] overflow-y-auto">
       <BrandHeader />
 
       <div className="mt-[24px] mb-[32px]">
@@ -51,49 +61,75 @@ export default function OnboardingForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-[24px] flex-1">
-        {/* Age */}
-        <div className="flex flex-col gap-[8px]">
-          <label className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#3d2b1a]">
-            อายุ
-          </label>
-          <input
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={120}
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            placeholder="เช่น 25"
-            className="h-[48px] w-full rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[16px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
-          />
+      <form onSubmit={handleSubmit} className="flex flex-col gap-[32px] flex-1">
+        {/* Age range */}
+        <div className="flex flex-col gap-[12px]">
+          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a]">
+            ช่วงอายุ
+          </p>
+          <div className="grid grid-cols-2 gap-[8px]">
+            {AGE_RANGES.map((opt) => {
+              const selected = age === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setAge(opt.value)}
+                  className={`flex items-center justify-between h-[48px] px-[16px] rounded-[12px] border transition-all ${
+                    selected
+                      ? "bg-[#c4855a] border-[#c4855a] text-white"
+                      : "bg-[#fff8ee] border-[#f0e4d4] text-[#9c7a5b]"
+                  }`}
+                >
+                  <span className={`font-[family-name:var(--font-prompt)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
+                    {opt.label}
+                  </span>
+                  {selected && (
+                    <div className="shrink-0 size-[18px] rounded-full bg-white/30 flex items-center justify-center">
+                      <Check size={11} color="white" strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Gender */}
-        <div className="flex flex-col gap-[8px]">
-          <label className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#3d2b1a]">
+        <div className="flex flex-col gap-[12px]">
+          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a]">
             เพศ
-          </label>
+          </p>
           <div className="grid grid-cols-2 gap-[8px]">
-            {GENDER_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setGender(opt.value)}
-                className={`h-[48px] rounded-[12px] border text-[14px] font-[family-name:var(--font-prompt)] transition-all ${
-                  gender === opt.value
-                    ? "bg-[#c4855a] border-[#c4855a] text-[#fafaf8] font-semibold shadow-[2px_2px_0px_0px_#e0d0c0]"
-                    : "bg-[#fff8ee] border-[#f0e4d4] text-[#9c7a5b] font-light"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+            {GENDER_OPTIONS.map((opt) => {
+              const selected = gender === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setGender(opt.value)}
+                  className={`flex items-center justify-between h-[48px] px-[16px] rounded-[12px] border transition-all ${
+                    selected
+                      ? "bg-[#c4855a] border-[#c4855a] text-white"
+                      : "bg-[#fff8ee] border-[#f0e4d4] text-[#9c7a5b]"
+                  }`}
+                >
+                  <span className={`font-[family-name:var(--font-prompt)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
+                    {opt.label}
+                  </span>
+                  {selected && (
+                    <div className="shrink-0 size-[18px] rounded-full bg-white/30 flex items-center justify-center">
+                      <Check size={11} color="white" strokeWidth={3} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {error && (
-          <p className="text-red-400 text-[13px] font-[family-name:var(--font-prompt)]">
+          <p className="font-[family-name:var(--font-prompt)] font-light text-[13px] text-red-400 -mt-[16px]">
             {error}
           </p>
         )}
@@ -101,10 +137,10 @@ export default function OnboardingForm() {
         <div className="mt-auto">
           <button
             type="submit"
-            disabled={submitting}
-            className="flex h-[56px] w-full items-center justify-center rounded-[16px] bg-[#c4855a] shadow-[2px_2px_0px_0px_#e0d0c0] active:scale-95 transition-all disabled:opacity-60"
+            disabled={submitting || !age || !gender}
+            className="flex h-[56px] w-full items-center justify-center rounded-[16px] bg-[#c4855a] active:scale-95 transition-all disabled:opacity-40"
           >
-            <span className="font-[family-name:var(--font-jakarta)] font-medium text-[20px] text-[#fafaf8] leading-normal whitespace-nowrap">
+            <span className="font-[family-name:var(--font-prompt)] font-semibold text-[18px] text-white">
               {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
             </span>
           </button>

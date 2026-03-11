@@ -7,6 +7,7 @@ import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
 import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
+import LoadingScreen from "../../components/LoadingScreen";
 import type { Publisher } from "../../types";
 
 interface Book {
@@ -202,13 +203,7 @@ export default function MyListPage() {
     await supabase.from("user_books").update({ is_purchased: updated }).eq("id", book.id);
   }
 
-  if (authLoading || loading) {
-    return (
-      <div className="flex w-full h-[100dvh] items-center justify-center bg-[#fafaf8]">
-        <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[18px]">กำลังโหลด...</p>
-      </div>
-    );
-  }
+  if (authLoading || loading) return <LoadingScreen />;
 
   return (
     <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
