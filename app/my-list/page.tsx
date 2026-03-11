@@ -208,7 +208,7 @@ export default function MyListPage() {
           </div>
 
           {/* Summary card */}
-          <div className="bg-[#eefdff] border border-[#b1dce4] rounded-[16px] p-[24px]">
+          <div className="bg-[#f3ffeb] border border-[#c4d8b6] rounded-[16px] p-[24px]">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
@@ -216,14 +216,14 @@ export default function MyListPage() {
                   {publishers.length}
                 </p>
               </div>
-              <div className="w-px self-stretch bg-[#b1dce4]" />
+              <div className="w-px self-stretch bg-[#c4d8b6]" />
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">หนังสือ</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none">
                   {books.length}
                 </p>
               </div>
-              <div className="w-px self-stretch bg-[#b1dce4]" />
+              <div className="w-px self-stretch bg-[#c4d8b6]" />
               <div className="flex flex-col gap-[4px] items-center flex-1">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">ราคา</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#c4855a] leading-none">
