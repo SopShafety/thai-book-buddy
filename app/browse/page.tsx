@@ -277,12 +277,6 @@ export default function BrowsePage() {
               </div>
               <div className="flex gap-[8px]">
                 <button
-                  onClick={() => setConfirmPublisherId(null)}
-                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
-                >
-                  ยกเลิก
-                </button>
-                <button
                   onClick={async () => {
                     const id = confirmPublisherId;
                     setConfirmPublisherId(null);
@@ -291,6 +285,12 @@ export default function BrowsePage() {
                   className="flex-1 h-[48px] rounded-[12px] bg-[#c4855a] font-[family-name:var(--font-prompt)] text-[16px] text-white"
                 >
                   ลบออก
+                </button>
+                <button
+                  onClick={() => setConfirmPublisherId(null)}
+                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                >
+                  ยกเลิก
                 </button>
               </div>
             </div>
