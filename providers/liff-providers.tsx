@@ -42,8 +42,17 @@ async function signInWithLINE(
       .eq("id", session.user.id)
       .single();
     const needsOnboarding = !profile?.age || !profile?.gender;
-    if (needsOnboarding) localStorage.removeItem(ONBOARDING_KEY);
-    else localStorage.setItem(ONBOARDING_KEY, "true");
+    if (needsOnboarding) {
+      localStorage.removeItem(ONBOARDING_KEY);
+      // Re-create profile row if it was deleted
+      const meta = session.user.user_metadata ?? {};
+      supabase.from("profiles").upsert(
+        { id: session.user.id, display_name: meta.display_name ?? null, picture_url: meta.picture_url ?? null },
+        { onConflict: "id", ignoreDuplicates: false }
+      ).then();
+    } else {
+      localStorage.setItem(ONBOARDING_KEY, "true");
+    }
     return { error: null, needsOnboarding };
   }
 
@@ -172,7 +181,10 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return "Not logged in";
 
-    const { error } = await supabase.from("profiles").update({ age, gender }).eq("id", user.id);
+    const { error } = await supabase.from("profiles").upsert(
+      { id: user.id, age, gender },
+      { onConflict: "id", ignoreDuplicates: false }
+    );
     if (error) return error.message;
 
     localStorage.setItem(ONBOARDING_KEY, "true");
