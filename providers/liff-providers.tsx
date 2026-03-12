@@ -12,7 +12,7 @@ interface LIFFContextValue {
   liffError: string | null;
   authError: string | null;
   logout: () => void;
-  completeProfile: (age: number, gender: string) => Promise<string | null>;
+  completeProfile: (age: string, gender: string) => Promise<string | null>;
 }
 
 const LIFFContext = createContext<LIFFContextValue>({
@@ -176,7 +176,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     setNeedsOnboarding(false);
   }
 
-  async function completeProfile(age: number, gender: string): Promise<string | null> {
+  async function completeProfile(age: string, gender: string): Promise<string | null> {
     const supabase = getSupabase();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return "Not logged in";

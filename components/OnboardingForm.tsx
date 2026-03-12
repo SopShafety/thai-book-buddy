@@ -12,13 +12,13 @@ const GENDER_OPTIONS = [
   { value: "prefer_not_to_say", label: "ไม่ระบุ" },
 ];
 
-const AGE_RANGES: { value: string; label: string; num: number }[] = [
-  { value: "under_18", label: "ต่ำกว่า 18 ปี", num: 15 },
-  { value: "18_24", label: "18 – 24 ปี", num: 21 },
-  { value: "25_34", label: "25 – 34 ปี", num: 29 },
-  { value: "35_44", label: "35 – 44 ปี", num: 39 },
-  { value: "45_54", label: "45 – 54 ปี", num: 49 },
-  { value: "55_plus", label: "55 ปีขึ้นไป", num: 60 },
+const AGE_RANGES = [
+  { value: "under_18", label: "ต่ำกว่า 18 ปี" },
+  { value: "18_24", label: "18 – 24 ปี" },
+  { value: "25_34", label: "25 – 34 ปี" },
+  { value: "35_44", label: "35 – 44 ปี" },
+  { value: "45_54", label: "45 – 54 ปี" },
+  { value: "55_plus", label: "55 ปีขึ้นไป" },
 ];
 
 export default function OnboardingForm() {
@@ -40,8 +40,7 @@ export default function OnboardingForm() {
     }
     setSubmitting(true);
     setError(null);
-    const ageNum = AGE_RANGES.find((r) => r.value === age)!.num;
-    const err = await completeProfile(ageNum, gender);
+    const err = await completeProfile(age, gender);
     if (err) {
       setError(err);
       setSubmitting(false);
