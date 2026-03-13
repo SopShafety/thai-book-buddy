@@ -99,23 +99,23 @@ export default function MapPage() {
                   points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
                   fill="none"
                   stroke="#c4855a"
-                  strokeWidth={14}
-                  strokeOpacity={0.75}
+                  strokeWidth={6}
+                  strokeOpacity={0.85}
                   strokeLinejoin="round"
                   strokeLinecap="round"
-                  strokeDasharray="30 18"
+                  strokeDasharray="12 8"
                 />
                 {/* Numbered pins */}
                 {route.map((c, i) => (
                   <g key={`${c.booth}-${i}`}>
-                    <circle cx={c.x} cy={c.y} r={28} fill="rgba(0,0,0,0.2)" />
-                    <circle cx={c.x} cy={c.y} r={26} fill="#c4855a" />
+                    <circle cx={c.x} cy={c.y} r={12} fill="rgba(0,0,0,0.2)" />
+                    <circle cx={c.x} cy={c.y} r={11} fill="#c4855a" />
                     <text
                       x={c.x}
-                      y={c.y + 9}
+                      y={c.y + 4}
                       textAnchor="middle"
                       fill="white"
-                      fontSize={24}
+                      fontSize={10}
                       fontWeight="bold"
                       fontFamily="sans-serif"
                     >

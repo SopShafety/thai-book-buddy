@@ -1,48 +1,49 @@
 /**
- * Booth coordinate mapping for the 2568 (last year) booth layout.
- * Image dimensions: 1980 x 1488px
+ * Booth coordinate mapping for the 2569 booth layout.
+ * Image dimensions: 1137 x 633px
  *
- * Column letters A–R map to approximate x-center pixel positions.
- * Row numbers 01–49 map to y positions via linear interpolation
+ * Column letters A–T map to approximate x-center pixel positions.
+ * Row numbers 01–50 map to y positions via linear interpolation
  * (low numbers = bottom of hall, high numbers = top of hall).
  *
- * These are intentionally approximate — good enough for a route overlay demo.
- * Will be replaced with precise coordinates once the 2569 layout is released.
+ * Calibrated from the 2569 official booth map image.
  */
 
-// X-center for each column letter (px, on 1980px-wide image)
+// X-center for each column letter (px, on 1137px-wide image)
 const COL_X: Record<string, number> = {
-  A: 175,
-  B: 270,
-  C: 360,
-  D: 455,
-  E: 520,
-  F: 582,
-  G: 665,
-  H: 750,
-  I: 838,
-  J: 925,
-  K: 1010,
-  L: 1115,
-  M: 1215,
-  N: 1330,
-  O: 1420,
-  P: 1510,
-  Q: 1620,
-  R: 1720,
+  A:   22,
+  B:   82,
+  C:  133,
+  D:  188,
+  E:  244,
+  F:  296,
+  G:  358,
+  H:  408,
+  I:  458,
+  J:  511,
+  K:  557,
+  L:  608,
+  M:  661,
+  N:  722,
+  O:  779,
+  P:  833,
+  Q:  894,
+  R:  952,
+  S: 1020,
+  T: 1097,
 };
 
 // Row number range present in the map
 const ROW_MIN = 1;
-const ROW_MAX = 49;
+const ROW_MAX = 50;
 
-// Y pixel range for row numbers (1980x1488 image)
-// Row 1 → near bottom of hall, Row 49 → near top
-const Y_ROW_MIN = 1340; // y for row 1
-const Y_ROW_MAX = 95;   // y for row 49
+// Y pixel range for row numbers (1137x633 image)
+// Row 1 → near bottom of hall, Row 50 → near top
+const Y_ROW_MIN = 608; // y for row 1
+const Y_ROW_MAX =  25; // y for row 50
 
 // MRT entrance: starting point for route optimisation (left side, mid-height)
-export const MRT_ENTRANCE = { x: 60, y: 750 };
+export const MRT_ENTRANCE = { x: 8, y: 320 };
 
 export interface BoothCoords {
   x: number;
@@ -52,10 +53,10 @@ export interface BoothCoords {
 
 /**
  * Parse a booth number string like "J30" or "B46" into { col, row }.
- * Returns null for unrecognised formats (e.g. "S01" special booths).
+ * Returns null for unrecognised formats (e.g. "U01" special booths).
  */
 function parseBooth(booth: string): { col: string; row: number } | null {
-  const match = booth.trim().match(/^([A-Ra-r])(\d+)$/);
+  const match = booth.trim().match(/^([A-Ta-t])(\d+)$/);
   if (!match) return null;
   const col = match[1].toUpperCase();
   const row = parseInt(match[2], 10);
@@ -64,7 +65,7 @@ function parseBooth(booth: string): { col: string; row: number } | null {
 }
 
 /**
- * Convert a booth number string to pixel coordinates on the 1980×1488 map image.
+ * Convert a booth number string to pixel coordinates on the 1137×633 map image.
  * Returns null if the booth number can't be parsed.
  */
 export function boothToCoords(booth: string): BoothCoords | null {
@@ -89,10 +90,10 @@ export function resolveBooths(boothNumbers: string[]): BoothCoords[] {
 }
 
 /**
- * Y-positions of the 7 main horizontal walkable aisles on the 1488px-tall image.
- * Derived from the midpoints between booth row groups (rows 1-8, 9-16, 17-24, 25-32, 33-40, 41-49).
+ * Y-positions of the 7 main horizontal walkable aisles on the 633px-tall image.
+ * Derived from the visible corridor gaps in the 2569 booth layout.
  */
-const H_AISLES = [100, 315, 523, 730, 938, 1145, 1380];
+const H_AISLES = [55, 155, 248, 340, 430, 520, 615];
 
 /**
  * Return the horizontal aisle y-position that minimises total vertical travel
