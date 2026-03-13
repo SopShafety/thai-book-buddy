@@ -155,7 +155,7 @@ export default function MapPage() {
                 fill="#7a6355"
                 fontSize={72}
                 fontWeight="bold"
-                fontFamily="sans-serif"
+                fontFamily="var(--font-prompt)"
                 opacity={0.35}
               >
                 ผังบูธปี 2569 กำลังจะมา
