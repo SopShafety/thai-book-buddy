@@ -9,8 +9,8 @@ import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
 import { resolveBooths, optimiseRoute, routeToWaypoints, type BoothCoords } from "../../utils/booth-coords";
 
-const IMAGE_W = 1980;
-const IMAGE_H = 1488;
+const IMAGE_W = 1137;
+const IMAGE_H = 633;
 
 interface RouteStop extends BoothCoords {
   name_th: string;
