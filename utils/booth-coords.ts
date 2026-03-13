@@ -91,28 +91,49 @@ export function resolveBooths(boothNumbers: string[]): BoothCoords[] {
 
 /**
  * Y-positions of the 7 main horizontal walkable aisles on the 633px-tall image.
- * Derived from the visible corridor gaps in the 2569 booth layout.
+ * These are the corridor gaps between booth row groups.
  */
 const H_AISLES = [55, 155, 248, 340, 430, 520, 615];
 
 /**
- * Return the horizontal aisle y-position that minimises total vertical travel
- * for a walk from y1 to y2.
+ * X-positions of the vertical corridors between halls (and outer edges).
+ * Used to connect two different horizontal aisles without crossing booths.
+ *   Hall 5 (A–F) | corridor | Hall 6 (G–L) | corridor | Hall 7 (M–R) | corridor | Hall 8 (S–T)
  */
-function nearestAisle(y1: number, y2: number): number {
+const V_CORRIDORS = [8, 327, 634, 986, 1130];
+
+/** Nearest horizontal aisle to a single y-position. */
+function nearestAisleFor(y: number): number {
   let best = H_AISLES[0];
-  let bestCost = Infinity;
+  let bestDist = Infinity;
   for (const a of H_AISLES) {
-    const cost = Math.abs(y1 - a) + Math.abs(y2 - a);
-    if (cost < bestCost) { bestCost = cost; best = a; }
+    const d = Math.abs(y - a);
+    if (d < bestDist) { bestDist = d; best = a; }
+  }
+  return best;
+}
+
+/** Nearest vertical corridor to a given x-position. */
+function nearestCorridorFor(x: number): number {
+  let best = V_CORRIDORS[0];
+  let bestDist = Infinity;
+  for (const v of V_CORRIDORS) {
+    const d = Math.abs(x - v);
+    if (d < bestDist) { bestDist = d; best = v; }
   }
   return best;
 }
 
 /**
  * Convert an ordered route into aisle-following polyline waypoints.
- * Each segment goes: booth → nearest aisle → move horizontally → next booth.
- * This avoids cutting straight through other booths.
+ *
+ * Each stop exits through its OWN nearest horizontal aisle (short vertical hop).
+ * When consecutive stops use different aisles, a vertical corridor connects them
+ * so the line never cuts through booth areas.
+ *
+ * Path shape per segment:
+ *   booth A → aisleA (vertical) → corridor (horizontal) → aisleB (vertical) → booth B
+ * When aisleA == aisleB the corridor hop is skipped.
  */
 export function routeToWaypoints(
   route: BoothCoords[]
@@ -123,15 +144,23 @@ export function routeToWaypoints(
   let prev: { x: number; y: number } = MRT_ENTRANCE;
 
   for (const stop of route) {
-    if (prev.x === stop.x) {
-      // Same column — go straight, no need to use a horizontal aisle
-      pts.push({ x: stop.x, y: stop.y });
+    const aisleA = nearestAisleFor(prev.y);
+    const aisleB = nearestAisleFor(stop.y);
+
+    pts.push({ x: prev.x, y: aisleA }); // exit prev position to its nearest aisle
+
+    if (aisleA === aisleB) {
+      // Same aisle — walk straight across
+      pts.push({ x: stop.x, y: aisleA });
     } else {
-      const aisleY = nearestAisle(prev.y, stop.y);
-      pts.push({ x: prev.x, y: aisleY });   // walk to aisle
-      pts.push({ x: stop.x, y: aisleY });   // walk along aisle
-      pts.push({ x: stop.x, y: stop.y });   // walk to booth
+      // Different aisles — route via the nearest vertical corridor
+      const corridor = nearestCorridorFor((prev.x + stop.x) / 2);
+      pts.push({ x: corridor, y: aisleA }); // walk along aisleA to corridor
+      pts.push({ x: corridor, y: aisleB }); // walk down/up corridor to aisleB
+      pts.push({ x: stop.x,   y: aisleB }); // walk along aisleB to destination column
     }
+
+    pts.push({ x: stop.x, y: stop.y }); // enter destination booth
     prev = stop;
   }
 
