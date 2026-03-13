@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Navigation } from "lucide-react";
+import { Navigation, MapPin, Search } from "lucide-react";
+import Link from "next/link";
 import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 import { useLIFF } from "../../providers/liff-providers";
@@ -11,16 +12,6 @@ import { resolveBooths, optimiseRoute, routeToWaypoints, type BoothCoords } from
 const IMAGE_W = 1980;
 const IMAGE_H = 1488;
 
-// Sample booths spread across the map for demo mode
-const DEMO_BOOTHS = [
-  { booth: "J30", name_th: "ตัวอย่าง: สำนักพิมพ์ J" },
-  { booth: "F08", name_th: "ตัวอย่าง: สำนักพิมพ์ F" },
-  { booth: "B32", name_th: "ตัวอย่าง: สำนักพิมพ์ B" },
-  { booth: "N20", name_th: "ตัวอย่าง: สำนักพิมพ์ N" },
-  { booth: "A15", name_th: "ตัวอย่าง: สำนักพิมพ์ A" },
-  { booth: "H25", name_th: "ตัวอย่าง: สำนักพิมพ์ H" },
-];
-
 interface RouteStop extends BoothCoords {
   name_th: string;
 }
@@ -28,15 +19,12 @@ interface RouteStop extends BoothCoords {
 export default function MapPage() {
   const { isLoggedIn } = useLIFF();
   const [route, setRoute] = useState<RouteStop[]>([]);
-  const [isDemo, setIsDemo] = useState(false);
   const [showList, setShowList] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     async function load() {
       if (!isLoggedIn) {
-        setIsDemo(true);
-        setRoute(buildRoute(DEMO_BOOTHS));
         setLoaded(true);
         return;
       }
@@ -57,15 +45,11 @@ export default function MapPage() {
           }
         }
 
-        if (pairs.length === 0) {
-          setIsDemo(true);
-          setRoute(buildRoute(DEMO_BOOTHS));
-        } else {
+        if (pairs.length > 0) {
           setRoute(buildRoute(pairs));
         }
       } catch {
-        setIsDemo(true);
-        setRoute(buildRoute(DEMO_BOOTHS));
+        // silently show empty state on error
       }
       setLoaded(true);
     }
@@ -83,7 +67,7 @@ export default function MapPage() {
           </p>
           <div className="px-[10px] py-[4px] rounded-full bg-[#f0e4d4]">
             <p className="font-[family-name:var(--font-prompt)] font-light text-[11px] text-[#973c00]">
-              {isDemo ? "ตัวอย่าง • " : ""}ผังปี 2568
+              ผังปี 2568
             </p>
           </div>
         </div>
@@ -154,16 +138,48 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* Toggle route list button */}
-        <button
-          onClick={() => setShowList((v) => !v)}
-          className="absolute bottom-[12px] right-[12px] z-10 flex items-center gap-[6px] px-[14px] py-[8px] rounded-full bg-[#c4855a] shadow-lg active:scale-95 transition-all"
-        >
-          <Navigation size={14} color="white" strokeWidth={2} />
-          <p className="font-[family-name:var(--font-prompt)] text-[13px] text-white font-medium">
-            {showList ? "ซ่อนเส้นทาง" : `เส้นทาง ${route.length} บูธ`}
-          </p>
-        </button>
+        {/* Toggle route list button — only when route exists */}
+        {loaded && route.length > 0 && (
+          <button
+            onClick={() => setShowList((v) => !v)}
+            className="absolute bottom-[12px] right-[12px] z-10 flex items-center gap-[6px] px-[14px] py-[8px] rounded-full bg-[#c4855a] shadow-lg active:scale-95 transition-all"
+          >
+            <Navigation size={14} color="white" strokeWidth={2} />
+            <p className="font-[family-name:var(--font-prompt)] text-[13px] text-white font-medium">
+              {showList ? "ซ่อนเส้นทาง" : `เส้นทาง ${route.length} บูธ`}
+            </p>
+          </button>
+        )}
+
+        {/* Empty state — no saved publishers */}
+        {loaded && route.length === 0 && (
+          <div className="absolute inset-0 flex items-end justify-center pb-[24px] pointer-events-none z-10">
+            <div className="pointer-events-auto mx-[16px] w-full max-w-[360px] rounded-[20px] bg-[#fafaf8] shadow-lg px-[20px] py-[20px] flex flex-col gap-[12px]">
+              <div className="flex items-center gap-[10px]">
+                <div className="shrink-0 size-[40px] rounded-full bg-[#f0e4d4] flex items-center justify-center">
+                  <MapPin size={20} color="#c4855a" strokeWidth={2} />
+                </div>
+                <div className="flex flex-col gap-[2px]">
+                  <p className="font-[family-name:var(--font-prompt)] font-semibold text-[15px] text-[#3d2b1a]">
+                    ยังไม่มีเส้นทางของคุณ
+                  </p>
+                  <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b] leading-snug">
+                    เพิ่มสำนักพิมพ์ที่ชอบในหน้าค้นหา แล้วกลับมาดูเส้นทางเดินที่นี่
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/browse"
+                className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] bg-[#c4855a] active:scale-95 transition-all"
+              >
+                <Search size={15} color="white" strokeWidth={2} />
+                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-white">
+                  ค้นหาสำนักพิมพ์
+                </span>
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Route stop list */}
@@ -190,11 +206,6 @@ export default function MapPage() {
                 </div>
               </div>
             ))}
-            {isDemo && (
-              <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#a6a09b] pb-[4px]">
-                เพิ่มสำนักพิมพ์ในรายการเพื่อดูเส้นทางของคุณ
-              </p>
-            )}
           </div>
         </div>
       )}
