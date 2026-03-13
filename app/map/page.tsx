@@ -6,7 +6,7 @@ import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
-import { resolveBooths, optimiseRoute, type BoothCoords } from "../../utils/booth-coords";
+import { resolveBooths, optimiseRoute, routeToWaypoints, type BoothCoords } from "../../utils/booth-coords";
 
 const IMAGE_W = 1980;
 const IMAGE_H = 1488;
@@ -115,9 +115,9 @@ export default function MapPage() {
                 height={IMAGE_H}
                 style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
               >
-                {/* Route dashed line */}
+                {/* Route dashed line — follows horizontal aisles */}
                 <polyline
-                  points={route.map((c) => `${c.x},${c.y}`).join(" ")}
+                  points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
                   fill="none"
                   stroke="#c4855a"
                   strokeWidth={14}

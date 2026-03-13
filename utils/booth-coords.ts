@@ -89,6 +89,55 @@ export function resolveBooths(boothNumbers: string[]): BoothCoords[] {
 }
 
 /**
+ * Y-positions of the 7 main horizontal walkable aisles on the 1488px-tall image.
+ * Derived from the midpoints between booth row groups (rows 1-8, 9-16, 17-24, 25-32, 33-40, 41-49).
+ */
+const H_AISLES = [100, 315, 523, 730, 938, 1145, 1380];
+
+/**
+ * Return the horizontal aisle y-position that minimises total vertical travel
+ * for a walk from y1 to y2.
+ */
+function nearestAisle(y1: number, y2: number): number {
+  let best = H_AISLES[0];
+  let bestCost = Infinity;
+  for (const a of H_AISLES) {
+    const cost = Math.abs(y1 - a) + Math.abs(y2 - a);
+    if (cost < bestCost) { bestCost = cost; best = a; }
+  }
+  return best;
+}
+
+/**
+ * Convert an ordered route into aisle-following polyline waypoints.
+ * Each segment goes: booth → nearest aisle → move horizontally → next booth.
+ * This avoids cutting straight through other booths.
+ */
+export function routeToWaypoints(
+  route: BoothCoords[]
+): { x: number; y: number }[] {
+  if (route.length === 0) return [];
+
+  const pts: { x: number; y: number }[] = [MRT_ENTRANCE];
+  let prev: { x: number; y: number } = MRT_ENTRANCE;
+
+  for (const stop of route) {
+    if (prev.x === stop.x) {
+      // Same column — go straight, no need to use a horizontal aisle
+      pts.push({ x: stop.x, y: stop.y });
+    } else {
+      const aisleY = nearestAisle(prev.y, stop.y);
+      pts.push({ x: prev.x, y: aisleY });   // walk to aisle
+      pts.push({ x: stop.x, y: aisleY });   // walk along aisle
+      pts.push({ x: stop.x, y: stop.y });   // walk to booth
+    }
+    prev = stop;
+  }
+
+  return pts;
+}
+
+/**
  * Euclidean distance between two points.
  */
 function dist(a: { x: number; y: number }, b: { x: number; y: number }): number {
