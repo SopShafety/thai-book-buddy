@@ -170,20 +170,20 @@ export default function MapPage() {
                   <MapPin size={20} color="#c4855a" strokeWidth={2} />
                 </div>
                 <div className="flex flex-col gap-[2px]">
-                  <p className="font-[family-name:var(--font-prompt)] font-semibold text-[15px] text-[#3d2b1a]">
+                  <p className="font-[family-name:var(--font-prompt)] font-semibold text-[16px] text-[#3d2b1a]">
                     ยังไม่มีเส้นทางของคุณ
                   </p>
-                  <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b] leading-snug">
+                  <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] leading-snug">
                     เพิ่มสำนักพิมพ์ที่ชอบในหน้าค้นหา แล้วกลับมาดูเส้นทางเดินที่นี่
                   </p>
                 </div>
               </div>
               <Link
                 href="/browse"
-                className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] border border-[#c4855a] active:scale-95 transition-all"
+                className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] bg-[#c4855a] active:scale-95 transition-all"
               >
-                <Search size={15} color="#c4855a" strokeWidth={2} />
-                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#c4855a]">
+                <Search size={15} color="white" strokeWidth={2} />
+                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-white">
                   ค้นหาสำนักพิมพ์
                 </span>
               </Link>
@@ -192,32 +192,32 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Toggle route list button */}
-      {loaded && route.length > 0 && (
-        <div className="shrink-0 flex justify-end px-[16px] py-[8px] border-t border-[#f0e4d4]">
-          <button
-            onClick={() => setShowList((v) => !v)}
-            className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border border-[#c4855a] active:scale-95 transition-all"
-          >
-            <Navigation size={13} color="#c4855a" strokeWidth={2} />
-            <p className="font-[family-name:var(--font-prompt)] text-[13px] text-[#c4855a] font-medium">
-              {showList ? "ซ่อนเส้นทาง" : `เส้นทาง ${route.length} บูธ`}
-            </p>
-          </button>
-        </div>
-      )}
-
       {/* Route stop list */}
-      {showList && route.length > 0 && (
-        <div className="shrink-0 max-h-[38vh] overflow-y-auto bg-[#fafaf8]">
-          <div className="flex flex-col px-[16px] pt-[12px] pb-[8px] gap-[10px]">
+      {loaded && route.length > 0 && (
+        <div className="shrink-0 border-t border-[#f0e4d4] bg-[#fafaf8]">
+          {/* Header row — always visible */}
+          <div className="flex items-center justify-between px-[16px] pt-[12px] pb-[8px]">
             <p className="font-[family-name:var(--font-prompt)] font-medium text-[13px] text-[#9c7a5b]">
               ลำดับการเดิน · เริ่มจากทางเข้า MRT
             </p>
+            <button
+              onClick={() => setShowList((v) => !v)}
+              className="flex items-center gap-[6px] px-[12px] py-[4px] rounded-full border border-[#c4855a] active:scale-95 transition-all"
+            >
+              <Navigation size={12} color="#c4855a" strokeWidth={2} />
+              <span className="font-[family-name:var(--font-prompt)] text-[12px] text-[#c4855a] font-medium">
+                {showList ? "ซ่อน" : `${route.length} บูธ`}
+              </span>
+            </button>
+          </div>
+          {/* Collapsible stop list */}
+          {showList && (
+          <div className="max-h-[32vh] overflow-y-auto">
+          <div className="flex flex-col px-[16px] pb-[8px] gap-[10px]">
             {route.map((stop, i) => (
               <div key={`list-${stop.booth}-${i}`} className="flex items-center gap-[12px]">
-                <div className="shrink-0 size-[28px] rounded-full bg-[#c4855a] flex items-center justify-center">
-                  <span className="font-[family-name:var(--font-jakarta)] font-bold text-[12px] text-white">
+                <div className="shrink-0 size-[28px] rounded-full border border-[#8fad7a] bg-[#f3ffeb] flex items-center justify-center">
+                  <span className="font-[family-name:var(--font-jakarta)] font-bold text-[12px] text-[#8fad7a]">
                     {i + 1}
                   </span>
                 </div>
@@ -232,6 +232,8 @@ export default function MapPage() {
               </div>
             ))}
           </div>
+          </div>
+          )}
         </div>
       )}
 
