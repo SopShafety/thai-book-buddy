@@ -149,75 +149,70 @@ function walkingDist(a: { x: number; y: number }, b: { x: number; y: number }): 
 }
 
 /**
- * Nearest-neighbour greedy pass starting from the MRT entrance.
- * Uses real walking distance for accurate ordering.
- */
-function nearestNeighbour(booths: BoothCoords[], start: { x: number; y: number }): BoothCoords[] {
-  const remaining = [...booths];
-  const route: BoothCoords[] = [];
-  let current = start;
-
-  while (remaining.length > 0) {
-    let nearestIdx = 0;
-    let nearestDist = walkingDist(current, remaining[0]);
-    for (let i = 1; i < remaining.length; i++) {
-      const d = walkingDist(current, remaining[i]);
-      if (d < nearestDist) { nearestDist = d; nearestIdx = i; }
-    }
-    const next = remaining.splice(nearestIdx, 1)[0];
-    route.push(next);
-    current = next;
-  }
-  return route;
-}
-
-/**
- * 2-opt improvement pass: try reversing every sub-segment to reduce total distance.
- * For n < 20 booths this completes in milliseconds.
+ * Aisle-sweep route optimisation.
  *
- * For an open path A→...→Z, reversing segment [i..j] swaps the two boundary edges:
- *   (prev_i → route[i])  +  (route[j] → next_j)
- * with:
- *   (prev_i → route[j])  +  (route[i] → next_j)
- * Internal edges within the reversed segment are unchanged in total cost.
- */
-function twoOpt(route: BoothCoords[], start: { x: number; y: number }): BoothCoords[] {
-  if (route.length < 3) return route;
-
-  let best = [...route];
-  let improved = true;
-
-  while (improved) {
-    improved = false;
-    for (let i = 0; i < best.length - 1; i++) {
-      for (let j = i + 1; j < best.length; j++) {
-        const prevI = i === 0 ? start : best[i - 1];
-        const currentCost =
-          walkingDist(prevI, best[i]) +
-          (j + 1 < best.length ? walkingDist(best[j], best[j + 1]) : 0);
-        const newCost =
-          walkingDist(prevI, best[j]) +
-          (j + 1 < best.length ? walkingDist(best[i], best[j + 1]) : 0);
-
-        if (newCost < currentCost - 1) {
-          // Reverse segment [i..j]
-          let lo = i, hi = j;
-          while (lo < hi) { [best[lo], best[hi]] = [best[hi], best[lo]]; lo++; hi--; }
-          improved = true;
-        }
-      }
-    }
-  }
-  return best;
-}
-
-/**
- * Optimise visit order: nearest-neighbour seed + 2-opt improvement.
- * Returns booths in shortest walking order from the MRT entrance.
+ * Instead of treating booths as isolated points (which causes zigzagging),
+ * this groups booths by their horizontal aisle and sweeps each aisle in one
+ * continuous pass before moving on — like a lawnmower pattern.
+ *
+ * Algorithm:
+ * 1. Group each booth under its nearest horizontal aisle.
+ * 2. Visit aisles greedily: always pick the aisle whose y is closest to where
+ *    we currently are (starting from MRT entrance y). This keeps consecutive
+ *    aisles physically adjacent so inter-aisle hops are short.
+ * 3. Within each aisle, sweep in whichever x-direction starts closest to our
+ *    current x position — guaranteeing a single monotonic pass with no
+ *    horizontal backtracking.
+ *
+ * Result: one clean serpentine path through the hall with no crossings.
  */
 export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
   if (booths.length === 0) return [];
-  return twoOpt(nearestNeighbour(booths, MRT_ENTRANCE), MRT_ENTRANCE);
+
+  // Step 1 — group by nearest aisle
+  const aisleGroups = new Map<number, BoothCoords[]>();
+  for (const booth of booths) {
+    const aisle = nearestAisleFor(booth.y);
+    const group = aisleGroups.get(aisle) ?? [];
+    group.push(booth);
+    aisleGroups.set(aisle, group);
+  }
+
+  // Step 2 — order aisles by greedy nearest-y from MRT entrance
+  const remaining = new Set(aisleGroups.keys());
+  const aisleOrder: number[] = [];
+  let currentY = MRT_ENTRANCE.y;
+
+  while (remaining.size > 0) {
+    let nearest = -1;
+    let nearestDist = Infinity;
+    for (const aisle of remaining) {
+      const d = Math.abs(aisle - currentY);
+      if (d < nearestDist) { nearestDist = d; nearest = aisle; }
+    }
+    aisleOrder.push(nearest);
+    remaining.delete(nearest);
+    currentY = nearest;
+  }
+
+  // Step 3 — sweep each aisle in one direction, no backtracking
+  const route: BoothCoords[] = [];
+  let currentX = MRT_ENTRANCE.x;
+
+  for (const aisle of aisleOrder) {
+    const group = aisleGroups.get(aisle)!;
+    const sorted = [...group].sort((a, b) => a.x - b.x);
+
+    // Start from whichever end is closer to our current x
+    const distToLeft  = Math.abs(currentX - sorted[0].x);
+    const distToRight = Math.abs(currentX - sorted[sorted.length - 1].x);
+    if (distToRight < distToLeft) sorted.reverse();
+
+    route.push(...sorted);
+    currentX = sorted[sorted.length - 1].x;
+  }
+
+  return route;
 }
 
 /**
