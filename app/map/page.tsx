@@ -102,7 +102,7 @@ export default function MapPage() {
             contentStyle={{ width: IMAGE_W, height: IMAGE_H, position: "relative" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/booth-map-2024.png" alt="ผังบูธปี 2568" width={IMAGE_W} height={IMAGE_H} />
+            <img src="/booth-map-2024.png" alt="ผังบูธปี 2568" width={IMAGE_W} height={IMAGE_H} style={{ opacity: 0.45 }} />
             {/* SVG route overlay */}
             {loaded && route.length > 0 && (
               <svg
@@ -142,27 +142,17 @@ export default function MapPage() {
               </svg>
             )}
 
-            {/* Watermark overlay — on top of route lines */}
-            <svg
-              width={IMAGE_W}
-              height={IMAGE_H}
-              style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
-            >
-              <text
-                x={990}
-                y={773}
-                textAnchor="middle"
-                fill="#7a6355"
-                fontSize={72}
-                fontWeight="bold"
-                fontFamily="var(--font-prompt)"
-                opacity={0.35}
-              >
-                ผังบูธปี 2569 กำลังจะมา
-              </text>
-            </svg>
           </TransformComponent>
         </TransformWrapper>
+
+        {/* Watermark — fixed overlay, unaffected by zoom */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="px-[20px] py-[10px] rounded-full bg-white/80">
+            <p className="font-[family-name:var(--font-prompt)] font-bold text-[16px] text-[#7a6355]">
+              ผังบูธปี 2569 กำลังจะมา
+            </p>
+          </div>
+        </div>
 
         {/* Toggle route list button */}
         <button
