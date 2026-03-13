@@ -2,7 +2,7 @@
 import { memo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Heart, Map } from "lucide-react";
+import { Search, Bookmark, Map } from "lucide-react";
 
 const tabs = [
   {
@@ -23,7 +23,7 @@ const tabs = [
     href: "/my-list",
     label: "รายการของฉัน",
     icon: (active: boolean) => (
-      <Heart size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
+      <Bookmark size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
     ),
   },
 ];
