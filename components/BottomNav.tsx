@@ -22,9 +22,10 @@ const tabs = [
   {
     href: "/map",
     label: "ผังงาน",
-    icon: (active: boolean) => (
-      <Map size={24} color={active ? "#973c00" : "#a6a09b"} strokeWidth={1.8} />
+    icon: (_active: boolean) => (
+      <Map size={24} color="#c9c5c1" strokeWidth={1.8} />
     ),
+    disabled: true,
   },
 ];
 
@@ -36,6 +37,16 @@ export default memo(function BottomNav() {
       <div className="flex pb-[12px] pt-[8px] px-[24px] justify-between">
         {tabs.map((tab) => {
           const active = pathname === tab.href;
+          if (tab.disabled) {
+            return (
+              <div key={tab.href} className="flex flex-col items-center gap-[8px] w-[80px] opacity-40">
+                {tab.icon(false)}
+                <span className="font-[family-name:var(--font-prompt)] text-[14px] leading-none whitespace-nowrap text-[#a6a09b]">
+                  {tab.label}
+                </span>
+              </div>
+            );
+          }
           return (
             <Link
               key={tab.href}

@@ -12,6 +12,7 @@ interface LIFFContextValue {
   liffError: string | null;
   authError: string | null;
   logout: () => void;
+  skipOnboarding: () => void;
   completeProfile: (age: string, gender: string) => Promise<string | null>;
 }
 
@@ -23,6 +24,7 @@ const LIFFContext = createContext<LIFFContextValue>({
   liffError: null,
   authError: null,
   logout: () => {},
+  skipOnboarding: () => {},
   completeProfile: async () => null,
 });
 
@@ -176,6 +178,10 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     setNeedsOnboarding(false);
   }
 
+  function skipOnboarding() {
+    setNeedsOnboarding(false);
+  }
+
   async function completeProfile(age: string, gender: string): Promise<string | null> {
     const supabase = getSupabase();
     const { data: { user } } = await supabase.auth.getUser();
@@ -200,6 +206,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     liffError,
     authError,
     logout,
+    skipOnboarding,
     completeProfile,
   };
   return <LIFFContext.Provider value={value}>{children}</LIFFContext.Provider>;

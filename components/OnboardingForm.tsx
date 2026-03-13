@@ -22,7 +22,7 @@ const AGE_RANGES = [
 ];
 
 export default function OnboardingForm() {
-  const { completeProfile } = useLIFF();
+  const { completeProfile, skipOnboarding } = useLIFF();
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -133,7 +133,7 @@ export default function OnboardingForm() {
           </p>
         )}
 
-        <div className="mt-auto">
+        <div className="mt-auto flex flex-col gap-[12px]">
           <button
             type="submit"
             disabled={submitting || !age || !gender}
@@ -141,6 +141,15 @@ export default function OnboardingForm() {
           >
             <span className="font-[family-name:var(--font-prompt)] font-semibold text-[18px] text-white">
               {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={skipOnboarding}
+            className="flex h-[48px] w-full items-center justify-center active:opacity-60 transition-opacity"
+          >
+            <span className="font-[family-name:var(--font-prompt)] font-light text-[16px] text-[#9c7a5b]">
+              ข้ามไปก่อน
             </span>
           </button>
         </div>

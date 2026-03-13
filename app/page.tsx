@@ -39,11 +39,12 @@ export default function Home() {
             <p className="font-[family-name:var(--font-jakarta)] font-medium text-[#c4855a] text-[20px] whitespace-nowrap">Loading...</p>
           </div>
         )}
-        {liffError && (
-          <p className="text-red-500 text-sm text-center w-full mb-2">LIFF: {liffError}</p>
-        )}
-        {authError && (
-          <p className="text-red-500 text-sm text-center w-full mb-2">Auth: {authError}</p>
+        {(liffError || authError) && (
+          <div className="mb-[12px] px-[16px] py-[12px] rounded-[12px] bg-red-50 border border-red-200">
+            <p className="font-[family-name:var(--font-prompt)] font-light text-[13px] text-red-600 text-center leading-relaxed">
+              {liffError ?? authError}
+            </p>
+          </div>
         )}
         {liff && !isLoggedIn && (
           <button

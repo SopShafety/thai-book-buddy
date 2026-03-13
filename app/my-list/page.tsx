@@ -151,7 +151,8 @@ export default function MyListPage() {
     if (!userId || !newBook.title.trim() || savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
-    const price = newBook.price ? parseInt(newBook.price, 10) : null;
+    const parsed = parseInt(newBook.price, 10);
+    const price = newBook.price.trim() && !isNaN(parsed) ? parsed : null;
     const supabase = getSupabase();
     const { data } = await supabase
       .from("user_books")
@@ -183,7 +184,8 @@ export default function MyListPage() {
   }
 
   async function saveBookPrice(bookId: string) {
-    const price = editPrice.trim() ? parseInt(editPrice, 10) : null;
+    const parsedEdit = parseInt(editPrice, 10);
+    const price = editPrice.trim() && !isNaN(parsedEdit) ? parsedEdit : null;
     setBooks((prev) => prev.map((b) => b.id === bookId ? { ...b, price } : b));
     setEditingBookId(null);
     setEditPrice("");
@@ -223,14 +225,14 @@ export default function MyListPage() {
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col gap-[4px] items-center shrink-0">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
-                <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none">
+                <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#6a7282] leading-none">
                   {publishers.length}
                 </p>
               </div>
               <div className="w-px h-[57px] bg-[#c4d8b6] shrink-0" />
               <div className="flex flex-col gap-[4px] items-center shrink-0 w-[64px]">
                 <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">หนังสือ</p>
-                <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none text-center">
+                <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#6a7282] leading-none text-center">
                   {books.length}
                 </p>
               </div>
