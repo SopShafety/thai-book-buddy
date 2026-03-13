@@ -282,9 +282,9 @@ export default function MyListPage() {
           </div>
         </div>
 
-        {/* Sticky search */}
+        {/* Sticky search + count row */}
         {publishers.length > 0 && (
-          <div className="sticky top-0 z-10 bg-[#fafaf8] px-[16px] py-[12px]">
+          <div className="sticky top-0 z-10 bg-[#fafaf8] px-[16px] pt-[12px] pb-[8px] flex flex-col gap-[8px]">
             <div className={`flex items-center gap-[9px] h-[48px] px-[12px] rounded-[16px] bg-[#fafaf8] border transition-colors ${
               searchFocused ? "border-[#973c00]" : "border-[#f0e4d4]"
             }`}>
@@ -307,6 +307,20 @@ export default function MyListPage() {
                   <X size={16} strokeWidth={2} />
                 </button>
               )}
+            </div>
+            <div className="flex items-center justify-between px-[4px]">
+              <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+                {filteredPublishers.length} สำนักพิมพ์
+              </p>
+              <button
+                onClick={() => {
+                  const allExpanded = publishers.every((p) => expanded.has(p.id));
+                  setExpanded(allExpanded ? new Set() : new Set(publishers.map((p) => p.id)));
+                }}
+                className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] active:opacity-60 transition-opacity"
+              >
+                {publishers.every((p) => expanded.has(p.id)) ? "ย่อทั้งหมด" : "ขยายทั้งหมด"}
+              </button>
             </div>
           </div>
         )}
