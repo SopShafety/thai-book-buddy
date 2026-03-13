@@ -8,7 +8,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading && isLoggedIn && !needsOnboarding) {
-      window.location.replace("/browse");
+      window.location.replace("/map");
     }
   }, [isLoading, isLoggedIn, needsOnboarding]);
 
