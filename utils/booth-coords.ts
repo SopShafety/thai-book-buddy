@@ -174,8 +174,14 @@ export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
 
 /**
  * Converts an ordered route into polyline waypoints that follow the walkable
- * grid. Each segment between consecutive stops uses the minimum number of
- * bends: one bend (same aisle) or three bends (different aisles via corridor).
+ * grid using the simplest possible path per segment:
+ *
+ *   prev → (prev.x, targetAisle) → (stop.x, targetAisle) → stop
+ *
+ * Each booth column is a valid vertical walkway, so we always walk straight
+ * up/down from the previous stop to the target aisle, then horizontally
+ * along that aisle to the next stop's column, then into the booth.
+ * This avoids unnecessary direction reversals and intermediate detours.
  */
 export function routeToWaypoints(
   route: BoothCoords[]
@@ -186,21 +192,10 @@ export function routeToWaypoints(
   let prev: { x: number; y: number } = MRT_ENTRANCE;
 
   for (const stop of route) {
-    const aisleA = nearestAisleFor(prev.y);
-    const aisleB = nearestAisleFor(stop.y);
-
-    pts.push({ x: prev.x, y: aisleA });
-
-    if (aisleA === aisleB) {
-      pts.push({ x: stop.x, y: aisleA });
-    } else {
-      const corridor = nearestCorridorFor((prev.x + stop.x) / 2);
-      pts.push({ x: corridor, y: aisleA });
-      pts.push({ x: corridor, y: aisleB });
-      pts.push({ x: stop.x,  y: aisleB });
-    }
-
-    pts.push({ x: stop.x, y: stop.y });
+    const targetAisle = nearestAisleFor(stop.y);
+    pts.push({ x: prev.x, y: targetAisle }); // walk vertically to the aisle
+    pts.push({ x: stop.x, y: targetAisle }); // walk horizontally along the aisle
+    pts.push({ x: stop.x, y: stop.y });       // step into the booth
     prev = stop;
   }
 
