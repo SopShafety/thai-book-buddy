@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Navigation } from "lucide-react";
 import BrandHeader from "../../components/BrandHeader";
-import MapPlaceholder from "../../components/MapPlaceholder";
 import BottomNav from "../../components/BottomNav";
 import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
@@ -102,7 +101,8 @@ export default function MapPage() {
             wrapperStyle={{ width: "100%", height: "100%" }}
             contentStyle={{ width: IMAGE_W, height: IMAGE_H, position: "relative" }}
           >
-            <MapPlaceholder />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/booth-map-2024.png" alt="ผังบูธปี 2568" width={IMAGE_W} height={IMAGE_H} />
             {/* SVG route overlay */}
             {loaded && route.length > 0 && (
               <svg
