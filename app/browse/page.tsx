@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, Heart, Check } from "lucide-react";
+import { Search, X, Bookmark, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
@@ -253,7 +253,7 @@ export default function BrowsePage() {
           </p>
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-[4px]">
-              <Heart size={20} color="#dea0a0" strokeWidth={1.8} />
+              <Bookmark size={20} color="#6a7282" strokeWidth={1.8} />
               <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
                 {selectedIds.size} รายการ
               </p>

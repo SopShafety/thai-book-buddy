@@ -1,5 +1,5 @@
 "use client";
-import { Heart } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 import type { Publisher } from "../types";
 
 interface Props {
@@ -43,12 +43,26 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         )}
       </div>
 
-      {/* Add / Remove button */}
+      {/* Add / Added button */}
       <button
         onClick={() => onToggle(publisher.id)}
-        className="shrink-0 size-[32px] flex items-center justify-center transition-all active:scale-90"
+        className="shrink-0 flex items-center gap-[4px] active:scale-90 transition-all"
       >
-        <Heart size={32} color="#dea0a0" fill={selected ? "#dea0a0" : "none"} strokeWidth={1.8} />
+        {selected ? (
+          <>
+            <Check size={18} color="#9c7a5b" strokeWidth={2} />
+            <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#9c7a5b]">
+              เพิ่มแล้ว
+            </span>
+          </>
+        ) : (
+          <>
+            <Plus size={18} color="#c4855a" strokeWidth={2} />
+            <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#c4855a]">
+              เพิ่ม
+            </span>
+          </>
+        )}
       </button>
     </div>
   );
