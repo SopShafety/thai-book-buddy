@@ -178,22 +178,10 @@ export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
     aisleGroups.set(aisle, group);
   }
 
-  // Step 2 — order aisles by greedy nearest-y from MRT entrance
-  const remaining = new Set(aisleGroups.keys());
-  const aisleOrder: number[] = [];
-  let currentY = MRT_ENTRANCE.y;
-
-  while (remaining.size > 0) {
-    let nearest = -1;
-    let nearestDist = Infinity;
-    for (const aisle of remaining) {
-      const d = Math.abs(aisle - currentY);
-      if (d < nearestDist) { nearestDist = d; nearest = aisle; }
-    }
-    aisleOrder.push(nearest);
-    remaining.delete(nearest);
-    currentY = nearest;
-  }
+  // Step 2 — order aisles top to bottom (ascending y = top of map first).
+  // This produces a single monotonic sweep through the hall with no vertical
+  // backtracking: user walks up to the topmost booths first, then works down.
+  const aisleOrder = Array.from(aisleGroups.keys()).sort((a, b) => a - b);
 
   // Step 3 — sweep each aisle in one direction, no backtracking
   const route: BoothCoords[] = [];
