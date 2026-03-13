@@ -161,19 +161,6 @@ export default function MapPage() {
         </TransformWrapper>
 
 
-        {/* Toggle route list button — only when route exists */}
-        {loaded && route.length > 0 && (
-          <button
-            onClick={() => setShowList((v) => !v)}
-            className="absolute bottom-[12px] right-[12px] z-10 flex items-center gap-[6px] px-[14px] py-[8px] rounded-full bg-[#c4855a] shadow-lg active:scale-95 transition-all"
-          >
-            <Navigation size={14} color="white" strokeWidth={2} />
-            <p className="font-[family-name:var(--font-prompt)] text-[13px] text-white font-medium">
-              {showList ? "ซ่อนเส้นทาง" : `เส้นทาง ${route.length} บูธ`}
-            </p>
-          </button>
-        )}
-
         {/* Empty state — no saved publishers */}
         {loaded && route.length === 0 && (
           <div className="absolute inset-0 flex items-end justify-center pb-[24px] pointer-events-none z-10">
@@ -193,10 +180,10 @@ export default function MapPage() {
               </div>
               <Link
                 href="/browse"
-                className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] bg-[#c4855a] active:scale-95 transition-all"
+                className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] border border-[#c4855a] active:scale-95 transition-all"
               >
-                <Search size={15} color="white" strokeWidth={2} />
-                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-white">
+                <Search size={15} color="#c4855a" strokeWidth={2} />
+                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#c4855a]">
                   ค้นหาสำนักพิมพ์
                 </span>
               </Link>
@@ -205,9 +192,24 @@ export default function MapPage() {
         )}
       </div>
 
+      {/* Toggle route list button */}
+      {loaded && route.length > 0 && (
+        <div className="shrink-0 flex justify-end px-[16px] py-[8px] border-t border-[#f0e4d4]">
+          <button
+            onClick={() => setShowList((v) => !v)}
+            className="flex items-center gap-[6px] px-[14px] py-[6px] rounded-full border border-[#c4855a] active:scale-95 transition-all"
+          >
+            <Navigation size={13} color="#c4855a" strokeWidth={2} />
+            <p className="font-[family-name:var(--font-prompt)] text-[13px] text-[#c4855a] font-medium">
+              {showList ? "ซ่อนเส้นทาง" : `เส้นทาง ${route.length} บูธ`}
+            </p>
+          </button>
+        </div>
+      )}
+
       {/* Route stop list */}
       {showList && route.length > 0 && (
-        <div className="shrink-0 max-h-[38vh] overflow-y-auto border-t border-[#f0e4d4] bg-[#fafaf8]">
+        <div className="shrink-0 max-h-[38vh] overflow-y-auto bg-[#fafaf8]">
           <div className="flex flex-col px-[16px] pt-[12px] pb-[8px] gap-[10px]">
             <p className="font-[family-name:var(--font-prompt)] font-medium text-[13px] text-[#9c7a5b]">
               ลำดับการเดิน · เริ่มจากทางเข้า MRT
