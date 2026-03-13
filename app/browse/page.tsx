@@ -8,6 +8,7 @@ import PublisherCard from "../../components/PublisherCard";
 import BottomNav from "../../components/BottomNav";
 import BrandHeader from "../../components/BrandHeader";
 import LoadingScreen from "../../components/LoadingScreen";
+import ErrorScreen from "../../components/ErrorScreen";
 import type { Publisher } from "../../types";
 
 export default function BrowsePage() {
@@ -23,6 +24,8 @@ export default function BrowsePage() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [pubsLoaded, setPubsLoaded] = useState(false);
+  const [pubsError, setPubsError] = useState(false);
+  const [pubsRetryKey, setPubsRetryKey] = useState(0);
   const [userLoaded, setUserLoaded] = useState(false);
   const [bookCounts, setBookCounts] = useState<Map<string, number>>(new Map());
   const [confirmPublisherId, setConfirmPublisherId] = useState<string | null>(null);
@@ -59,37 +62,46 @@ export default function BrowsePage() {
           localStorage.removeItem(CACHE_KEY);
         }
       }
-      const supabase = getSupabase();
-      const { data: pubs } = await supabase
-        .from("publishers")
-        .select("id, name_th, name_en, category, booths(zone, booth_number)")
-        .order("name_th");
-      if (pubs) {
-        setPublishers(pubs as Publisher[]);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: pubs, ts: Date.now() }));
+      try {
+        const supabase = getSupabase();
+        const { data: pubs, error } = await supabase
+          .from("publishers")
+          .select("id, name_th, name_en, category, booths(zone, booth_number)")
+          .order("name_th");
+        if (error) throw error;
+        if (pubs) {
+          setPublishers(pubs as Publisher[]);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: pubs, ts: Date.now() }));
+        }
+      } catch {
+        setPubsError(true);
       }
       setPubsLoaded(true);
     }
     loadPublishers();
-  }, []);
+  }, [pubsRetryKey]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
     async function loadUserData() {
-      const supabase = getSupabase();
-      const [{ data: user }, { data: sels }, { data: books }] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.from("user_selections").select("publisher_id"),
-        supabase.from("user_books").select("publisher_id"),
-      ]);
-      if (user?.user) setUserId(user.user.id);
-      if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
-      if (books) {
-        const counts = new Map<string, number>();
-        for (const b of books as { publisher_id: string }[]) {
-          counts.set(b.publisher_id, (counts.get(b.publisher_id) ?? 0) + 1);
+      try {
+        const supabase = getSupabase();
+        const [{ data: user }, { data: sels }, { data: books }] = await Promise.all([
+          supabase.auth.getUser(),
+          supabase.from("user_selections").select("publisher_id"),
+          supabase.from("user_books").select("publisher_id"),
+        ]);
+        if (user?.user) setUserId(user.user.id);
+        if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
+        if (books) {
+          const counts = new Map<string, number>();
+          for (const b of books as { publisher_id: string }[]) {
+            counts.set(b.publisher_id, (counts.get(b.publisher_id) ?? 0) + 1);
+          }
+          setBookCounts(counts);
         }
-        setBookCounts(counts);
+      } catch {
+        // Non-critical: list still works, user just won't see their selections
       }
       setUserLoaded(true);
     }
@@ -157,6 +169,7 @@ export default function BrowsePage() {
   }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!pubsLoaded) return <LoadingScreen />;
+  if (pubsError) return <ErrorScreen onRetry={() => { setPubsError(false); setPubsLoaded(false); setPubsRetryKey((k) => k + 1); }} />;
 
   return (
     <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">

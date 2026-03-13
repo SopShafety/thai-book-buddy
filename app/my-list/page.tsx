@@ -8,6 +8,7 @@ import { useLIFF } from "../../providers/liff-providers";
 import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 import LoadingScreen from "../../components/LoadingScreen";
+import ErrorScreen from "../../components/ErrorScreen";
 import type { Publisher } from "../../types";
 
 interface Book {
@@ -31,6 +32,8 @@ export default function MyListPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [addingFor, setAddingFor] = useState<string | null>(null);
   const [newBook, setNewBook] = useState<NewBookForm>({ title: "", price: "" });
@@ -53,27 +56,33 @@ export default function MyListPage() {
   useEffect(() => {
     if (!isLoggedIn) return;
     async function load() {
-      const supabase = getSupabase();
-      const [{ data: userData }, { data: sels }, { data: bookData }] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase
-          .from("user_selections")
-          .select("publisher_id, publishers(id, name_th, name_en, booths(zone, booth_number))")
-          .order("created_at"),
-        supabase.from("user_books").select("id, publisher_id, title, price, is_purchased").order("created_at"),
-      ]);
-      if (userData?.user) setUserId(userData.user.id);
-      if (sels) {
-        setPublishers(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (sels.map((s: any) => Array.isArray(s.publishers) ? s.publishers[0] : s.publishers).filter(Boolean) as Publisher[]).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"))
-        );
+      try {
+        const supabase = getSupabase();
+        const [{ data: userData }, { data: sels, error: selsError }, { data: bookData, error: bookError }] = await Promise.all([
+          supabase.auth.getUser(),
+          supabase
+            .from("user_selections")
+            .select("publisher_id, publishers(id, name_th, name_en, booths(zone, booth_number))")
+            .order("created_at"),
+          supabase.from("user_books").select("id, publisher_id, title, price, is_purchased").order("created_at"),
+        ]);
+        if (selsError) throw selsError;
+        if (bookError) throw bookError;
+        if (userData?.user) setUserId(userData.user.id);
+        if (sels) {
+          setPublishers(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (sels.map((s: any) => Array.isArray(s.publishers) ? s.publishers[0] : s.publishers).filter(Boolean) as Publisher[]).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"))
+          );
+        }
+        if (bookData) setBooks(bookData as Book[]);
+      } catch {
+        setLoadError(true);
       }
-      if (bookData) setBooks(bookData as Book[]);
       setLoading(false);
     }
     load();
-  }, [isLoggedIn]);
+  }, [isLoggedIn, retryKey]);
 
   const totalBudget = useMemo(() => books.reduce((sum, b) => sum + (b.price ?? 0), 0), [books]);
 
@@ -206,6 +215,7 @@ export default function MyListPage() {
   }
 
   if (authLoading || loading) return <LoadingScreen />;
+  if (loadError) return <ErrorScreen onRetry={() => { setLoadError(false); setLoading(true); setRetryKey((k) => k + 1); }} />;
 
   return (
     <div className="relative flex flex-col w-full h-[100dvh] bg-[#fafaf8]">
