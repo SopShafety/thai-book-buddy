@@ -39,6 +39,7 @@ export default function MyListPage() {
   const [newBook, setNewBook] = useState<NewBookForm>({ title: "", price: "" });
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+  const addFormRef = useRef<HTMLDivElement>(null);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
   const [search, setSearch] = useState("");
@@ -55,6 +56,15 @@ export default function MyListPage() {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!addingFor) return;
+    // Wait for iOS keyboard to finish animating (~300ms) before scrolling
+    const t = setTimeout(() => {
+      addFormRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [addingFor]);
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
@@ -389,7 +399,7 @@ export default function MyListPage() {
 
                       {isAdding ? (
                         /* Add book form */
-                        <div className="flex flex-col gap-[8px]">
+                        <div ref={addFormRef} className="flex flex-col gap-[8px]">
                           <input
                             type="text"
                             value={newBook.title}
