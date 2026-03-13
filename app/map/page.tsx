@@ -93,7 +93,9 @@ export default function MapPage() {
             {/* White overlay to soften map */}
             <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
             {/* SVG route overlay — viewBox keeps booth-coords in native pixel space */}
-            {loaded && route.length > 0 && (
+            {loaded && route.length > 0 && (() => {
+              const waypointStr = routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ");
+              return (
               <svg
                 width={IMAGE_W}
                 height={IMAGE_H}
@@ -118,7 +120,7 @@ export default function MapPage() {
 
                 {/* Glow layer — wide soft stroke underneath */}
                 <polyline
-                  points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
+                  points={waypointStr}
                   fill="none"
                   stroke="#4a7fa5"
                   strokeWidth={10}
@@ -128,7 +130,7 @@ export default function MapPage() {
                 />
                 {/* Route dashed line */}
                 <polyline
-                  points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
+                  points={waypointStr}
                   fill="none"
                   stroke="#4a7fa5"
                   strokeWidth={5}
@@ -155,7 +157,8 @@ export default function MapPage() {
                   </g>
                 ))}
               </svg>
-            )}
+              );
+            })()}
 
           </TransformComponent>
         </TransformWrapper>

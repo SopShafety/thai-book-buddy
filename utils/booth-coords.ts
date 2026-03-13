@@ -178,10 +178,13 @@ export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
     aisleGroups.set(aisle, group);
   }
 
-  // Step 2 — order aisles top to bottom (ascending y = top of map first).
-  // This produces a single monotonic sweep through the hall with no vertical
-  // backtracking: user walks up to the topmost booths first, then works down.
+  // Step 2 — order aisles for a single monotonic sweep with minimal initial walk.
+  // Compare distance from MRT entrance to the topmost vs bottommost occupied aisle;
+  // start from whichever extreme is closer so the user doesn't walk the wrong way first.
   const aisleOrder = Array.from(aisleGroups.keys()).sort((a, b) => a - b);
+  const distToTop    = Math.abs(aisleOrder[0]                       - MRT_ENTRANCE.y);
+  const distToBottom = Math.abs(aisleOrder[aisleOrder.length - 1]   - MRT_ENTRANCE.y);
+  if (distToBottom < distToTop) aisleOrder.reverse();
 
   // Step 3 — sweep each aisle in one direction, no backtracking
   const route: BoothCoords[] = [];
