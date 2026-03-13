@@ -106,7 +106,7 @@ export default function MapPage() {
               alt="ผังบูธ"
               width={IMAGE_W}
               height={IMAGE_H}
-              style={{ display: "block" }}
+              style={{ display: "block", opacity: 0.45 }}
             />
             {/* SVG route overlay */}
             {loaded && route.length > 0 && (
