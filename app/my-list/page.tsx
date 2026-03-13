@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, X, Plus, Check, BookOpen, Pencil, Trash2 } from "lucide-react";
+import { ChevronRight, X, Plus, Check, BookOpen, Pencil, Trash2, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -41,12 +41,19 @@ export default function MyListPage() {
   const savingRef = useRef(false);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [toast, setToast] = useState<{ message: string; onUndo: (() => void) | null } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
-    return () => { if (toastTimer.current) clearTimeout(toastTimer.current); };
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -85,6 +92,14 @@ export default function MyListPage() {
   }, [isLoggedIn, retryKey]);
 
   const totalBudget = useMemo(() => books.reduce((sum, b) => sum + (b.price ?? 0), 0), [books]);
+
+  const filteredPublishers = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
+    if (!q) return publishers;
+    return publishers.filter(
+      (p) => p.name_th.toLowerCase().includes(q) || (p.name_en ?? "").toLowerCase().includes(q)
+    );
+  }, [publishers, debouncedSearch]);
 
   const booksByPublisher = useMemo(() => {
     const map = new Map<string, Book[]>();
@@ -257,6 +272,35 @@ export default function MyListPage() {
           </div>
         </div>
 
+        {/* Sticky search */}
+        {publishers.length > 0 && (
+          <div className="sticky top-0 z-10 bg-[#fafaf8] px-[16px] py-[12px]">
+            <div className={`flex items-center gap-[9px] h-[48px] px-[12px] rounded-[16px] bg-[#fafaf8] border transition-colors ${
+              searchFocused ? "border-[#973c00]" : "border-[#f0e4d4]"
+            }`}>
+              <Search size={20} color={searchFocused ? "#973c00" : "#746d67"} strokeWidth={1.8} className="shrink-0" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                  searchDebounceRef.current = setTimeout(() => setDebouncedSearch(e.target.value), 200);
+                }}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                placeholder="ค้นหาสำนักพิมพ์..."
+                className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
+              />
+              {search && (
+                <button onClick={() => { setSearch(""); setDebouncedSearch(""); }} className="shrink-0 text-[#746d67]">
+                  <X size={16} strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Publisher list */}
         <div className="flex flex-col gap-[16px] px-[16px] py-[12px]">
           {publishers.length === 0 ? (
@@ -273,8 +317,12 @@ export default function MyListPage() {
                 </span>
               </Link>
             </div>
+          ) : filteredPublishers.length === 0 ? (
+            <div className="flex items-center justify-center py-[48px]">
+              <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
+            </div>
           ) : (
-            publishers.map((publisher) => {
+            filteredPublishers.map((publisher) => {
               const pubBooks = booksByPublisher.get(publisher.id) ?? [];
               const isExpanded = expanded.has(publisher.id);
               const isAdding = addingFor === publisher.id;
