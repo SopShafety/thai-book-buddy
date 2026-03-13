@@ -125,15 +125,105 @@ function nearestCorridorFor(x: number): number {
 }
 
 /**
+ * Real walking distance between two points following the aisle grid.
+ * Accounts for: vertical hop to aisle, horizontal walk, corridor transition if needed.
+ */
+function walkingDist(a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const aisleA = nearestAisleFor(a.y);
+  const aisleB = nearestAisleFor(b.y);
+  const vertA = Math.abs(a.y - aisleA);
+  const vertB = Math.abs(b.y - aisleB);
+
+  if (aisleA === aisleB) {
+    // Same aisle — straight horizontal walk
+    return vertA + Math.abs(a.x - b.x) + vertB;
+  }
+
+  // Different aisles — must pass through a vertical corridor
+  const corridor = nearestCorridorFor((a.x + b.x) / 2);
+  return vertA +
+    Math.abs(a.x - corridor) +   // walk along aisleA to corridor
+    Math.abs(aisleA - aisleB) +  // walk along corridor
+    Math.abs(corridor - b.x) +   // walk along aisleB to destination
+    vertB;
+}
+
+/**
+ * Nearest-neighbour greedy pass starting from the MRT entrance.
+ * Uses real walking distance for accurate ordering.
+ */
+function nearestNeighbour(booths: BoothCoords[], start: { x: number; y: number }): BoothCoords[] {
+  const remaining = [...booths];
+  const route: BoothCoords[] = [];
+  let current = start;
+
+  while (remaining.length > 0) {
+    let nearestIdx = 0;
+    let nearestDist = walkingDist(current, remaining[0]);
+    for (let i = 1; i < remaining.length; i++) {
+      const d = walkingDist(current, remaining[i]);
+      if (d < nearestDist) { nearestDist = d; nearestIdx = i; }
+    }
+    const next = remaining.splice(nearestIdx, 1)[0];
+    route.push(next);
+    current = next;
+  }
+  return route;
+}
+
+/**
+ * 2-opt improvement pass: try reversing every sub-segment to reduce total distance.
+ * For n < 20 booths this completes in milliseconds.
+ *
+ * For an open path A→...→Z, reversing segment [i..j] swaps the two boundary edges:
+ *   (prev_i → route[i])  +  (route[j] → next_j)
+ * with:
+ *   (prev_i → route[j])  +  (route[i] → next_j)
+ * Internal edges within the reversed segment are unchanged in total cost.
+ */
+function twoOpt(route: BoothCoords[], start: { x: number; y: number }): BoothCoords[] {
+  if (route.length < 3) return route;
+
+  let best = [...route];
+  let improved = true;
+
+  while (improved) {
+    improved = false;
+    for (let i = 0; i < best.length - 1; i++) {
+      for (let j = i + 1; j < best.length; j++) {
+        const prevI = i === 0 ? start : best[i - 1];
+        const currentCost =
+          walkingDist(prevI, best[i]) +
+          (j + 1 < best.length ? walkingDist(best[j], best[j + 1]) : 0);
+        const newCost =
+          walkingDist(prevI, best[j]) +
+          (j + 1 < best.length ? walkingDist(best[i], best[j + 1]) : 0);
+
+        if (newCost < currentCost - 1) {
+          // Reverse segment [i..j]
+          let lo = i, hi = j;
+          while (lo < hi) { [best[lo], best[hi]] = [best[hi], best[lo]]; lo++; hi--; }
+          improved = true;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+/**
+ * Optimise visit order: nearest-neighbour seed + 2-opt improvement.
+ * Returns booths in shortest walking order from the MRT entrance.
+ */
+export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
+  if (booths.length === 0) return [];
+  return twoOpt(nearestNeighbour(booths, MRT_ENTRANCE), MRT_ENTRANCE);
+}
+
+/**
  * Convert an ordered route into aisle-following polyline waypoints.
- *
- * Each stop exits through its OWN nearest horizontal aisle (short vertical hop).
- * When consecutive stops use different aisles, a vertical corridor connects them
- * so the line never cuts through booth areas.
- *
- * Path shape per segment:
- *   booth A → aisleA (vertical) → corridor (horizontal) → aisleB (vertical) → booth B
- * When aisleA == aisleB the corridor hop is skipped.
+ * Each stop exits through its own nearest aisle; different aisles are
+ * connected via vertical corridors so lines never cut through booth areas.
  */
 export function routeToWaypoints(
   route: BoothCoords[]
@@ -147,58 +237,20 @@ export function routeToWaypoints(
     const aisleA = nearestAisleFor(prev.y);
     const aisleB = nearestAisleFor(stop.y);
 
-    pts.push({ x: prev.x, y: aisleA }); // exit prev position to its nearest aisle
+    pts.push({ x: prev.x, y: aisleA });
 
     if (aisleA === aisleB) {
-      // Same aisle — walk straight across
       pts.push({ x: stop.x, y: aisleA });
     } else {
-      // Different aisles — route via the nearest vertical corridor
       const corridor = nearestCorridorFor((prev.x + stop.x) / 2);
-      pts.push({ x: corridor, y: aisleA }); // walk along aisleA to corridor
-      pts.push({ x: corridor, y: aisleB }); // walk down/up corridor to aisleB
-      pts.push({ x: stop.x,   y: aisleB }); // walk along aisleB to destination column
+      pts.push({ x: corridor, y: aisleA });
+      pts.push({ x: corridor, y: aisleB });
+      pts.push({ x: stop.x,   y: aisleB });
     }
 
-    pts.push({ x: stop.x, y: stop.y }); // enter destination booth
+    pts.push({ x: stop.x, y: stop.y });
     prev = stop;
   }
 
   return pts;
-}
-
-/**
- * Euclidean distance between two points.
- */
-function dist(a: { x: number; y: number }, b: { x: number; y: number }): number {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-}
-
-/**
- * Nearest-neighbour route optimisation starting from the MRT entrance.
- * Returns the booths in suggested walking order.
- */
-export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
-  if (booths.length === 0) return [];
-
-  const remaining = [...booths];
-  const route: BoothCoords[] = [];
-  let current: { x: number; y: number } = MRT_ENTRANCE;
-
-  while (remaining.length > 0) {
-    let nearestIdx = 0;
-    let nearestDist = dist(current, remaining[0]);
-    for (let i = 1; i < remaining.length; i++) {
-      const d = dist(current, remaining[i]);
-      if (d < nearestDist) {
-        nearestDist = d;
-        nearestIdx = i;
-      }
-    }
-    const next = remaining.splice(nearestIdx, 1)[0];
-    route.push(next);
-    current = next;
-  }
-
-  return route;
 }
