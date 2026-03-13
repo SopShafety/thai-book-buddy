@@ -87,6 +87,8 @@ export default function MapPage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/booth-map-2569.png" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
+            {/* White overlay to soften map */}
+            <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
             {/* SVG route overlay */}
             {loaded && route.length > 0 && (
               <svg
@@ -94,22 +96,47 @@ export default function MapPage() {
                 height={IMAGE_H}
                 style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
               >
-                {/* Route dashed line — follows horizontal aisles */}
+                <defs>
+                  {/* Glow filter for route line */}
+                  <filter id="line-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  {/* Drop shadow for pins */}
+                  <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#1e3a5f" floodOpacity="0.4" />
+                  </filter>
+                </defs>
+
+                {/* Glow layer — wide soft stroke underneath */}
                 <polyline
                   points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
                   fill="none"
-                  stroke="#c4855a"
-                  strokeWidth={6}
-                  strokeOpacity={0.85}
+                  stroke="#4a7fa5"
+                  strokeWidth={10}
+                  strokeOpacity={0.3}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+                {/* Route dashed line */}
+                <polyline
+                  points={routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ")}
+                  fill="none"
+                  stroke="#4a7fa5"
+                  strokeWidth={5}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   strokeDasharray="12 8"
+                  filter="url(#line-glow)"
                 />
                 {/* Numbered pins */}
                 {route.map((c, i) => (
-                  <g key={`${c.booth}-${i}`}>
-                    <circle cx={c.x} cy={c.y} r={12} fill="rgba(0,0,0,0.2)" />
-                    <circle cx={c.x} cy={c.y} r={11} fill="#c4855a" />
+                  <g key={`${c.booth}-${i}`} filter="url(#pin-shadow)">
+                    <circle cx={c.x} cy={c.y} r={11} fill="#4a7fa5" />
                     <text
                       x={c.x}
                       y={c.y + 4}
