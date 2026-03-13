@@ -54,6 +54,8 @@ export default function MyListPage() {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+      // Commit any pending deletion immediately when navigating away
+      if (pendingAction.current) { pendingAction.current(); pendingAction.current = null; }
     };
   }, []);
 
