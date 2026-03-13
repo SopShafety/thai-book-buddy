@@ -204,19 +204,6 @@ export default function MapPlaceholder() {
         </g>
       ))}
 
-      {/* Coming soon watermark */}
-      <rect x={390} y={690} width={1200} height={130} rx={16} fill="#e6dfd7" opacity={0.92} />
-      <text
-        x={990}
-        y={773}
-        textAnchor="middle"
-        fill="#7a6355"
-        fontSize={72}
-        fontWeight="bold"
-        fontFamily="sans-serif"
-      >
-        ผังบูธปี 2569 กำลังจะมา
-      </text>
     </svg>
   );
 }

@@ -141,6 +141,26 @@ export default function MapPage() {
                 ))}
               </svg>
             )}
+
+            {/* Watermark overlay — on top of route lines */}
+            <svg
+              width={IMAGE_W}
+              height={IMAGE_H}
+              style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+            >
+              <text
+                x={990}
+                y={773}
+                textAnchor="middle"
+                fill="#7a6355"
+                fontSize={72}
+                fontWeight="bold"
+                fontFamily="sans-serif"
+                opacity={0.35}
+              >
+                ผังบูธปี 2569 กำลังจะมา
+              </text>
+            </svg>
           </TransformComponent>
         </TransformWrapper>
 
