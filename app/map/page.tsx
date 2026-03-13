@@ -67,7 +67,7 @@ export default function MapPage() {
           </p>
           <div className="px-[10px] py-[4px] rounded-full bg-[#f0e4d4]">
             <p className="font-[family-name:var(--font-prompt)] font-light text-[11px] text-[#973c00]">
-              ผังปี 2568
+              ผังปี 2569
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@ export default function MapPage() {
             contentStyle={{ width: IMAGE_W, height: IMAGE_H, position: "relative" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/booth-map-2024.png" alt="ผังบูธปี 2568" width={IMAGE_W} height={IMAGE_H} style={{ opacity: 0.45 }} />
+            <img src="/booth-map-2569.png" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
             {/* SVG route overlay */}
             {loaded && route.length > 0 && (
               <svg
@@ -129,14 +129,6 @@ export default function MapPage() {
           </TransformComponent>
         </TransformWrapper>
 
-        {/* Watermark — fixed overlay, unaffected by zoom */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="px-[20px] py-[10px] rounded-full bg-white/80">
-            <p className="font-[family-name:var(--font-prompt)] font-bold text-[16px] text-[#7a6355]">
-              ผังบูธปี 2569 กำลังจะมา
-            </p>
-          </div>
-        </div>
 
         {/* Toggle route list button — only when route exists */}
         {loaded && route.length > 0 && (
