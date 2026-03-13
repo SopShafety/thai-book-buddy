@@ -88,3 +88,121 @@ export function resolveBooths(boothNumbers: string[]): BoothCoords[] {
     return c ? [c] : [];
   });
 }
+
+// ---------------------------------------------------------------------------
+// Walkable grid
+// ---------------------------------------------------------------------------
+
+/**
+ * Y-positions of the 7 main horizontal aisles on the 633px-tall image.
+ */
+const H_AISLES = [55, 155, 248, 340, 430, 520, 615];
+
+/**
+ * X-positions of all 21 vertical walkways.
+ * Left outer edge (MRT side) plus one walkway per column A–T.
+ */
+const V_CORRIDORS = [
+  8,                                                   // left outer / MRT
+  22, 82, 133, 188, 244, 296, 358, 408, 458, 511,     // A – J
+  557, 608, 661, 722, 779, 833, 894, 952, 1020, 1097, // K – T
+];
+
+function nearestAisleFor(y: number): number {
+  return H_AISLES.reduce((best, a) =>
+    Math.abs(a - y) < Math.abs(best - y) ? a : best
+  );
+}
+
+function nearestCorridorFor(x: number): number {
+  return V_CORRIDORS.reduce((best, v) =>
+    Math.abs(v - x) < Math.abs(best - x) ? v : best
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Route optimisation — true alternating serpentine
+// ---------------------------------------------------------------------------
+
+/**
+ * Orders booths as a clean lawnmower sweep:
+ *
+ * 1. Group booths by nearest horizontal aisle.
+ * 2. Visit aisles top-to-bottom (or bottom-to-top if that extreme is closer
+ *    to the MRT entrance).
+ * 3. Strictly alternate sweep direction aisle-by-aisle: the first aisle
+ *    sweeps LEFT→RIGHT (MRT is on the left), the next RIGHT→LEFT, and so on.
+ *
+ * This guarantees the path never crosses itself horizontally — no zigzags.
+ */
+export function optimiseRoute(booths: BoothCoords[]): BoothCoords[] {
+  if (booths.length === 0) return [];
+
+  // Group by nearest aisle
+  const aisleGroups = new Map<number, BoothCoords[]>();
+  for (const booth of booths) {
+    const aisle = nearestAisleFor(booth.y);
+    const group = aisleGroups.get(aisle) ?? [];
+    group.push(booth);
+    aisleGroups.set(aisle, group);
+  }
+
+  // Start from whichever extreme (top or bottom) is closer to MRT entrance
+  const aisleOrder = Array.from(aisleGroups.keys()).sort((a, b) => a - b);
+  const distToTop    = Math.abs(aisleOrder[0]                     - MRT_ENTRANCE.y);
+  const distToBottom = Math.abs(aisleOrder[aisleOrder.length - 1] - MRT_ENTRANCE.y);
+  if (distToBottom < distToTop) aisleOrder.reverse();
+
+  // Alternate direction each aisle — first sweep is L→R (MRT is on the left)
+  const route: BoothCoords[] = [];
+  let leftToRight = true;
+
+  for (const aisle of aisleOrder) {
+    const group = aisleGroups.get(aisle)!;
+    const sorted = [...group].sort((a, b) => a.x - b.x);
+    if (!leftToRight) sorted.reverse();
+    route.push(...sorted);
+    leftToRight = !leftToRight;
+  }
+
+  return route;
+}
+
+// ---------------------------------------------------------------------------
+// Waypoint generation — minimal L-shaped segments along walkways
+// ---------------------------------------------------------------------------
+
+/**
+ * Converts an ordered route into polyline waypoints that follow the walkable
+ * grid. Each segment between consecutive stops uses the minimum number of
+ * bends: one bend (same aisle) or three bends (different aisles via corridor).
+ */
+export function routeToWaypoints(
+  route: BoothCoords[]
+): { x: number; y: number }[] {
+  if (route.length === 0) return [];
+
+  const pts: { x: number; y: number }[] = [MRT_ENTRANCE];
+  let prev: { x: number; y: number } = MRT_ENTRANCE;
+
+  for (const stop of route) {
+    const aisleA = nearestAisleFor(prev.y);
+    const aisleB = nearestAisleFor(stop.y);
+
+    pts.push({ x: prev.x, y: aisleA });
+
+    if (aisleA === aisleB) {
+      pts.push({ x: stop.x, y: aisleA });
+    } else {
+      const corridor = nearestCorridorFor((prev.x + stop.x) / 2);
+      pts.push({ x: corridor, y: aisleA });
+      pts.push({ x: corridor, y: aisleB });
+      pts.push({ x: stop.x,  y: aisleB });
+    }
+
+    pts.push({ x: stop.x, y: stop.y });
+    prev = stop;
+  }
+
+  return pts;
+}
