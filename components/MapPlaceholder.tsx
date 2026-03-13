@@ -205,14 +205,15 @@ export default function MapPlaceholder() {
       ))}
 
       {/* Coming soon watermark */}
+      <rect x={390} y={690} width={1200} height={130} rx={16} fill="#e6dfd7" opacity={0.92} />
       <text
         x={990}
-        y={760}
+        y={773}
         textAnchor="middle"
-        fill="#b8a898"
-        fontSize={56}
+        fill="#7a6355"
+        fontSize={72}
+        fontWeight="bold"
         fontFamily="sans-serif"
-        opacity={0.6}
       >
         ผังบูธปี 2569 กำลังจะมา
       </text>
