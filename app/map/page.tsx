@@ -9,8 +9,11 @@ import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
 import { resolveBooths, optimiseRoute, routeToWaypoints, type BoothCoords } from "../../utils/booth-coords";
 
-const IMAGE_W = 1137;
-const IMAGE_H = 633;
+const IMAGE_W = 1980;
+const IMAGE_H = 1102;
+// Native image resolution — SVG viewBox uses this coordinate space
+const NATIVE_W = 1137;
+const NATIVE_H = 633;
 
 interface RouteStop extends BoothCoords {
   name_th: string;
@@ -89,11 +92,12 @@ export default function MapPage() {
             <img src="/booth-map-2569.png" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
             {/* White overlay to soften map */}
             <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
-            {/* SVG route overlay */}
+            {/* SVG route overlay — viewBox keeps booth-coords in native pixel space */}
             {loaded && route.length > 0 && (
               <svg
                 width={IMAGE_W}
                 height={IMAGE_H}
+                viewBox={`0 0 ${NATIVE_W} ${NATIVE_H}`}
                 style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
               >
                 <defs>
