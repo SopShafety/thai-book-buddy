@@ -52,7 +52,7 @@ export default function MapPage() {
         <div className="absolute top-[12px] left-[16px]">
           <div className="flex items-center gap-[6px] px-[10px] py-[4px] rounded-full bg-black/30 backdrop-blur-sm">
             <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-white">
-              ผังบูธปี 2567 (ตัวอย่าง)
+              ผังบูธปี 2568 (ตัวอย่าง)
             </p>
           </div>
         </div>
