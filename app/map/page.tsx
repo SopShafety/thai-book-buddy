@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Navigation, MapPin, Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import Link from "next/link";
 import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
-import { resolveBooths, optimiseRoute, routeToWaypoints, type BoothCoords } from "../../utils/booth-coords";
+import { resolveBooths, type BoothCoords } from "../../utils/booth-coords";
 
 const IMAGE_W = 1980;
 const IMAGE_H = 1102;
@@ -15,14 +15,13 @@ const IMAGE_H = 1102;
 const NATIVE_W = 1137;
 const NATIVE_H = 633;
 
-interface RouteStop extends BoothCoords {
+interface BoothStop extends BoothCoords {
   name_th: string;
 }
 
 export default function MapPage() {
   const { isLoggedIn } = useLIFF();
-  const [route, setRoute] = useState<RouteStop[]>([]);
-  const [showList, setShowList] = useState(true);
+  const [booths, setBooths] = useState<BoothStop[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -49,7 +48,11 @@ export default function MapPage() {
         }
 
         if (pairs.length > 0) {
-          setRoute(buildRoute(pairs));
+          const coords = resolveBooths(pairs.map((p) => p.booth));
+          setBooths(coords.map((c) => {
+            const match = pairs.find((p) => p.booth === c.booth);
+            return { ...c, name_th: match?.name_th ?? c.booth };
+          }));
         }
       } catch {
         // silently show empty state on error
@@ -92,10 +95,8 @@ export default function MapPage() {
             <img src="/booth-map-2569.png" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
             {/* White overlay to soften map */}
             <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
-            {/* SVG route overlay — viewBox keeps booth-coords in native pixel space */}
-            {loaded && route.length > 0 && (() => {
-              const waypointStr = routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ");
-              return (
+            {/* Booth pins */}
+            {loaded && booths.length > 0 && (
               <svg
                 width={IMAGE_W}
                 height={IMAGE_H}
@@ -103,44 +104,11 @@ export default function MapPage() {
                 style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
               >
                 <defs>
-                  {/* Glow filter for route line */}
-                  <filter id="line-glow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                  {/* Drop shadow for pins */}
                   <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
                     <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#1e3a5f" floodOpacity="0.4" />
                   </filter>
                 </defs>
-
-                {/* Glow layer — wide soft stroke underneath */}
-                <polyline
-                  points={waypointStr}
-                  fill="none"
-                  stroke="#4a7fa5"
-                  strokeWidth={10}
-                  strokeOpacity={0.3}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                {/* Route dashed line */}
-                <polyline
-                  points={waypointStr}
-                  fill="none"
-                  stroke="#4a7fa5"
-                  strokeWidth={5}
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  strokeDasharray="12 8"
-                  filter="url(#line-glow)"
-                />
-                {/* Numbered pins */}
-                {route.map((c, i) => (
+                {booths.map((c, i) => (
                   <g key={`${c.booth}-${i}`} filter="url(#pin-shadow)">
                     <circle cx={c.x} cy={c.y} r={11} fill="#4a7fa5" />
                     <text
@@ -157,15 +125,13 @@ export default function MapPage() {
                   </g>
                 ))}
               </svg>
-              );
-            })()}
+            )}
 
           </TransformComponent>
         </TransformWrapper>
 
-
         {/* Empty state — no saved publishers */}
-        {loaded && route.length === 0 && (
+        {loaded && booths.length === 0 && (
           <div className="absolute inset-0 flex items-end justify-center pb-[24px] pointer-events-none z-10">
             <div className="pointer-events-auto mx-[16px] w-full max-w-[360px] rounded-[20px] bg-[#fafaf8] shadow-lg px-[20px] py-[20px] flex flex-col gap-[12px]">
               <div className="flex items-center gap-[10px]">
@@ -195,60 +161,7 @@ export default function MapPage() {
         )}
       </div>
 
-      {/* Route stop list */}
-      {loaded && route.length > 0 && (
-        <div className="shrink-0 border-t border-[#f0e4d4] bg-[#fafaf8]">
-          {/* Header row — always visible */}
-          <div className="flex items-center justify-between px-[16px] pt-[12px] pb-[8px]">
-            <p className="font-[family-name:var(--font-prompt)] font-medium text-[13px] text-[#9c7a5b]">
-              ลำดับการเดิน · เริ่มจากทางเข้า MRT
-            </p>
-            <button
-              onClick={() => setShowList((v) => !v)}
-              className="flex items-center gap-[6px] px-[12px] py-[4px] rounded-full border border-[#c4855a] active:scale-95 transition-all"
-            >
-              <Navigation size={12} color="#c4855a" strokeWidth={2} />
-              <span className="font-[family-name:var(--font-prompt)] text-[12px] text-[#c4855a] font-medium">
-                {showList ? "ซ่อน" : `${route.length} บูธ`}
-              </span>
-            </button>
-          </div>
-          {/* Collapsible stop list */}
-          {showList && (
-          <div className="max-h-[32vh] overflow-y-auto">
-          <div className="flex flex-col px-[16px] pb-[8px] gap-[10px]">
-            {route.map((stop, i) => (
-              <div key={`list-${stop.booth}-${i}`} className="flex items-center gap-[12px]">
-                <div className="shrink-0 size-[28px] rounded-full border border-[#8fad7a] bg-[#f3ffeb] flex items-center justify-center">
-                  <span className="font-[family-name:var(--font-jakarta)] font-bold text-[12px] text-[#8fad7a]">
-                    {i + 1}
-                  </span>
-                </div>
-                <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
-                  {stop.name_th}
-                </p>
-                <div className="shrink-0 px-[8px] py-[2px] rounded-full bg-[#fff8ee] border border-[#f0e4d4]">
-                  <p className="font-[family-name:var(--font-jakarta)] font-medium text-[12px] text-[#9c7a5b]">
-                    {stop.booth}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-          </div>
-          )}
-        </div>
-      )}
-
       <BottomNav />
     </div>
   );
-}
-
-function buildRoute(pairs: { booth: string; name_th: string }[]): RouteStop[] {
-  const coords = optimiseRoute(resolveBooths(pairs.map((p) => p.booth)));
-  return coords.map((c) => {
-    const match = pairs.find((p) => p.booth === c.booth);
-    return { ...c, name_th: match?.name_th ?? c.booth };
-  });
 }
