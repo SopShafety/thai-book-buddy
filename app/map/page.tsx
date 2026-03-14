@@ -14,10 +14,10 @@ import {
   type BoothCoords,
 } from "../../utils/booth-coords";
 
-const IMAGE_W = 1980;
-const IMAGE_H = 1102;
-const NATIVE_W = 1137;
-const NATIVE_H = 633;
+const IMAGE_W = 2048;
+const IMAGE_H = 1024;
+const NATIVE_W = 2048;
+const NATIVE_H = 1024;
 
 interface RouteStop extends BoothCoords {
   name_th: string;
@@ -31,6 +31,32 @@ export default function MapPage() {
 
   useEffect(() => {
     async function load() {
+      // Preview mode: bypass LIFF, load mock booths spread across the map
+      if (typeof window !== "undefined" && window.location.search.includes("preview=1")) {
+        const mockPairs = [
+          { booth: "C42", name_th: "สำนักพิมพ์ ก" },
+          { booth: "G37", name_th: "สำนักพิมพ์ ข" },
+          { booth: "L35", name_th: "สำนักพิมพ์ ค" },
+          { booth: "P38", name_th: "สำนักพิมพ์ ง" },
+          { booth: "D30", name_th: "สำนักพิมพ์ จ" },
+          { booth: "K32", name_th: "สำนักพิมพ์ ฉ" },
+          { booth: "R28", name_th: "สำนักพิมพ์ ช" },
+          { booth: "B22", name_th: "สำนักพิมพ์ ซ" },
+          { booth: "H20", name_th: "สำนักพิมพ์ ณ" },
+          { booth: "N18", name_th: "สำนักพิมพ์ ด" },
+          { booth: "T24", name_th: "สำนักพิมพ์ ต" },
+          { booth: "E14", name_th: "สำนักพิมพ์ ถ" },
+          { booth: "J12", name_th: "สำนักพิมพ์ ท" },
+          { booth: "Q10", name_th: "สำนักพิมพ์ น" },
+          { booth: "A06", name_th: "สำนักพิมพ์ บ" },
+          { booth: "M08", name_th: "สำนักพิมพ์ ป" },
+          { booth: "S04", name_th: "สำนักพิมพ์ ผ" },
+        ];
+        setRoute(buildRoute(mockPairs));
+        setLoaded(true);
+        return;
+      }
+
       if (!isLoggedIn) {
         setLoaded(true);
         return;
@@ -92,7 +118,7 @@ export default function MapPage() {
             contentStyle={{ width: IMAGE_W, height: IMAGE_H, position: "relative" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/booth-map-2569.png" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
+            <img src="/booth-map-2569.jpg" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
             <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
 
             {loaded && route.length > 0 && (() => {
@@ -105,31 +131,21 @@ export default function MapPage() {
                   style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
                 >
                   <defs>
-                    <filter id="line-glow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
                     <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
                       <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#1e3a5f" floodOpacity="0.4" />
                     </filter>
                   </defs>
 
-                  {/* Route line */}
                   <polyline
                     points={waypointStr}
                     fill="none"
                     stroke="#4a7fa5"
-                    strokeWidth={4}
+                    strokeWidth={3}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    strokeOpacity={0.7}
-                    filter="url(#line-glow)"
+                    strokeOpacity={0.8}
                   />
 
-                  {/* Numbered pins */}
                   {route.map((c, i) => (
                     <g key={`${c.booth}-${i}`} filter="url(#pin-shadow)">
                       <circle cx={c.x} cy={c.y} r={11} fill="#4a7fa5" />
