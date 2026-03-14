@@ -119,7 +119,7 @@ export default function MapPage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/booth-map-2569.jpg" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
-            <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.5)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.65)", pointerEvents: "none" }} />
 
             {loaded && route.length > 0 && (() => {
               const waypointStr = routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ");
@@ -132,23 +132,23 @@ export default function MapPage() {
                 >
                   <defs>
                     <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#1e3a5f" floodOpacity="0.4" />
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#7a3e1a" floodOpacity="0.4" />
                     </filter>
                   </defs>
 
                   <polyline
                     points={waypointStr}
                     fill="none"
-                    stroke="#4a7fa5"
-                    strokeWidth={3}
+                    stroke="#c4855a"
+                    strokeWidth={4}
                     strokeLinejoin="round"
                     strokeLinecap="round"
-                    strokeOpacity={0.8}
+                    strokeOpacity={0.95}
                   />
 
                   {route.map((c, i) => (
                     <g key={`${c.booth}-${i}`} filter="url(#pin-shadow)">
-                      <circle cx={c.x} cy={c.y} r={11} fill="#4a7fa5" />
+                      <circle cx={c.x} cy={c.y} r={12} fill="#c4855a" />
                       <text
                         x={c.x}
                         y={c.y + 4}
