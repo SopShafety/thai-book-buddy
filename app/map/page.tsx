@@ -7,20 +7,36 @@ import BrandHeader from "../../components/BrandHeader";
 import BottomNav from "../../components/BottomNav";
 import { useLIFF } from "../../providers/liff-providers";
 import { getSupabase } from "../../utils/supabase";
-import {
-  resolveBooths,
-  optimiseRoute,
-  routeToWaypoints,
-  type BoothCoords,
-} from "../../utils/booth-coords";
+import { BOOTH_DATA, IMAGE_W, IMAGE_H } from "../../utils/booth-coords-data";
 
-const IMAGE_W = 2048;
-const IMAGE_H = 1024;
-const NATIVE_W = 2048;
-const NATIVE_H = 1024;
+// MRT entrance on the 2560×1932 image — left wall aisle, entering at middle horizontal corridor
+const MRT_ENTRANCE = { x: 460, y: 919 };
 
-interface RouteStop extends BoothCoords {
+// ---------------------------------------------------------------------------
+// Globally-clear vertical aisles (no booth exists at ANY y in these x-ranges)
+// Derived from booth polygon analysis. All paths between zones must route through these.
+// ---------------------------------------------------------------------------
+const V_AISLES = [460, 564, 748, 932, 1290, 1484, 1667, 2219];
+
+// Globally-clear horizontal aisles (no booth exists at ANY x in these y-ranges)
+// Plus top/bottom edges of the hall.
+const H_AISLES = [340, 809, 919, 1264, 1400];
+
+function nearestVAisle(x: number): number {
+  return V_AISLES.reduce((best, a) => Math.abs(a - x) < Math.abs(best - x) ? a : best);
+}
+
+function nearestHAisle(y: number): number {
+  return H_AISLES.reduce((best, a) => Math.abs(a - y) < Math.abs(best - y) ? a : best);
+}
+
+interface RouteStop {
+  booth: string;
   name_th: string;
+  pinX: number;
+  pinY: number;
+  fill: string;
+  polygon: [number, number][];
 }
 
 export default function MapPage() {
@@ -44,13 +60,6 @@ export default function MapPage() {
           { booth: "B22", name_th: "สำนักพิมพ์ ซ" },
           { booth: "H20", name_th: "สำนักพิมพ์ ณ" },
           { booth: "N18", name_th: "สำนักพิมพ์ ด" },
-          { booth: "T24", name_th: "สำนักพิมพ์ ต" },
-          { booth: "E14", name_th: "สำนักพิมพ์ ถ" },
-          { booth: "J12", name_th: "สำนักพิมพ์ ท" },
-          { booth: "Q10", name_th: "สำนักพิมพ์ น" },
-          { booth: "A06", name_th: "สำนักพิมพ์ บ" },
-          { booth: "M08", name_th: "สำนักพิมพ์ ป" },
-          { booth: "S04", name_th: "สำนักพิมพ์ ผ" },
         ];
         setRoute(buildRoute(mockPairs));
         setLoaded(true);
@@ -108,7 +117,7 @@ export default function MapPage() {
       {/* Map */}
       <div className="relative flex-1 overflow-hidden bg-[#e0dbd4]">
         <TransformWrapper
-          initialScale={0.2}
+          initialScale={0.15}
           minScale={0.1}
           maxScale={4}
           centerOnInit
@@ -119,52 +128,67 @@ export default function MapPage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/booth-map-2569.jpg" alt="ผังบูธปี 2569" width={IMAGE_W} height={IMAGE_H} />
-            <div style={{ position: "absolute", top: 0, left: 0, width: IMAGE_W, height: IMAGE_H, background: "rgba(255,255,255,0.65)", pointerEvents: "none" }} />
 
-            {loaded && route.length > 0 && (() => {
-              const waypointStr = routeToWaypoints(route).map((p) => `${p.x},${p.y}`).join(" ");
-              return (
-                <svg
-                  width={IMAGE_W}
-                  height={IMAGE_H}
-                  viewBox={`0 0 ${NATIVE_W} ${NATIVE_H}`}
-                  style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
-                >
-                  <defs>
-                    <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#7a3e1a" floodOpacity="0.4" />
-                    </filter>
-                  </defs>
+            {/* SVG overlay: white mask with punch-holes at selected booths + route line + pins */}
+            <svg
+              width={IMAGE_W}
+              height={IMAGE_H}
+              viewBox={`0 0 ${IMAGE_W} ${IMAGE_H}`}
+              style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+            >
+              <defs>
+                {/* Mask: white everywhere, black punches at selected booths */}
+                <mask id="booth-mask">
+                  <rect width={IMAGE_W} height={IMAGE_H} fill="white" />
+                  {loaded && route.map((stop) => (
+                    <polygon
+                      key={`mask-${stop.booth}`}
+                      points={stop.polygon.map(([x, y]) => `${x},${y}`).join(" ")}
+                      fill="black"
+                    />
+                  ))}
+                </mask>
 
+
+              </defs>
+
+              {/* White desaturation overlay — punched out at pinned booths */}
+              <rect
+                width={IMAGE_W}
+                height={IMAGE_H}
+                fill="rgba(255,255,255,0.65)"
+                mask="url(#booth-mask)"
+              />
+
+              {/* Route line */}
+              {loaded && route.length > 0 && (() => {
+                const waypoints = buildWaypoints(route);
+                const waypointStr = waypoints.map((p) => `${p.x},${p.y}`).join(" ");
+                return (
                   <polyline
                     points={waypointStr}
                     fill="none"
                     stroke="#c4855a"
-                    strokeWidth={4}
+                    strokeWidth={6}
                     strokeLinejoin="round"
                     strokeLinecap="round"
                     strokeOpacity={0.95}
                   />
+                );
+              })()}
 
-                  {route.map((c, i) => (
-                    <g key={`${c.booth}-${i}`} filter="url(#pin-shadow)">
-                      <circle cx={c.x} cy={c.y} r={12} fill="#c4855a" />
-                      <text
-                        x={c.x}
-                        y={c.y + 4}
-                        textAnchor="middle"
-                        fill="white"
-                        fontSize={10}
-                        fontWeight="bold"
-                        fontFamily="sans-serif"
-                      >
-                        {i + 1}
-                      </text>
-                    </g>
-                  ))}
-                </svg>
-              );
-            })()}
+              {/* Booth outlines for selected booths */}
+              {loaded && route.map((stop) => (
+                <polygon
+                  key={`outline-${stop.booth}`}
+                  points={stop.polygon.map(([x, y]) => `${x},${y}`).join(" ")}
+                  fill="none"
+                  stroke="#c4855a"
+                  strokeWidth={4}
+                  strokeLinejoin="round"
+                />
+              ))}
+            </svg>
           </TransformComponent>
         </TransformWrapper>
 
@@ -204,7 +228,7 @@ export default function MapPage() {
         <div className="shrink-0 border-t border-[#f0e4d4] bg-[#fafaf8]">
           <div className="flex items-center justify-between px-[16px] pt-[12px] pb-[8px]">
             <p className="font-[family-name:var(--font-prompt)] font-medium text-[13px] text-[#9c7a5b]">
-              ลำดับการเดิน · เริ่มจากทางเข้า MRT
+              เส้นทางเดิน · เริ่มจากทางเข้า MRT
             </p>
             <button
               onClick={() => setShowList((v) => !v)}
@@ -221,11 +245,7 @@ export default function MapPage() {
               <div className="flex flex-col px-[16px] pb-[8px] gap-[10px]">
                 {route.map((stop, i) => (
                   <div key={`list-${stop.booth}-${i}`} className="flex items-center gap-[12px]">
-                    <div className="shrink-0 size-[28px] rounded-full border border-[#8fad7a] bg-[#f3ffeb] flex items-center justify-center">
-                      <span className="font-[family-name:var(--font-jakarta)] font-bold text-[12px] text-[#8fad7a]">
-                        {i + 1}
-                      </span>
-                    </div>
+                    <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
                     <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
                       {stop.name_th}
                     </p>
@@ -247,10 +267,78 @@ export default function MapPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Route building helpers
+// ---------------------------------------------------------------------------
+
 function buildRoute(pairs: { booth: string; name_th: string }[]): RouteStop[] {
-  const coords = optimiseRoute(resolveBooths(pairs.map((p) => p.booth)));
-  return coords.map((c) => {
-    const match = pairs.find((p) => p.booth === c.booth);
-    return { ...c, name_th: match?.name_th ?? c.booth };
-  });
+  const resolved: RouteStop[] = [];
+  for (const p of pairs) {
+    const data = BOOTH_DATA[p.booth];
+    if (data) resolved.push({ booth: p.booth, name_th: p.name_th, ...data });
+  }
+
+  // Sort columns left→right, alternate direction within each column
+  const colGroups = new Map<number, RouteStop[]>();
+  for (const stop of resolved) {
+    const group = colGroups.get(stop.pinX) ?? [];
+    group.push(stop);
+    colGroups.set(stop.pinX, group);
+  }
+
+  const colOrder = Array.from(colGroups.keys()).sort((a, b) => a - b);
+  const route: RouteStop[] = [];
+  let topToBottom = true;
+
+  for (const col of colOrder) {
+    const group = colGroups.get(col)!;
+    const sorted = [...group].sort((a, b) => a.pinY - b.pinY);
+    if (!topToBottom) sorted.reverse();
+    route.push(...sorted);
+    topToBottom = !topToBottom;
+  }
+
+  return route;
+}
+
+function buildWaypoints(route: RouteStop[]): { x: number; y: number }[] {
+  if (route.length === 0) return [];
+
+  type Pt = { x: number; y: number };
+
+  // Route each segment through the globally-clear aisle corridors.
+  // Between different vertical zones, the path must use a horizontal aisle to cross.
+  function corridorPath(from: Pt, to: Pt): Pt[] {
+    const va = nearestVAisle(from.x);
+    const vb = nearestVAisle(to.x);
+
+    if (va === vb) {
+      // Same vertical zone: exit to zone's aisle, travel vertically, return to booth
+      return [from, { x: va, y: from.y }, { x: va, y: to.y }, to];
+    }
+
+    // Different vertical zones: cross via the horizontal aisle nearest to the midpoint
+    const hCross = nearestHAisle((from.y + to.y) / 2);
+    return [
+      from,
+      { x: va, y: from.y },    // walk to own vertical aisle
+      { x: va, y: hCross },     // travel along it to horizontal crossing
+      { x: vb, y: hCross },     // cross to destination vertical aisle
+      { x: vb, y: to.y },       // travel down/up to destination row
+      to,                       // walk to destination booth
+    ];
+  }
+
+  const all: Pt[] = [MRT_ENTRANCE];
+  let prev: Pt = MRT_ENTRANCE;
+
+  for (const stop of route) {
+    const dest: Pt = { x: stop.pinX, y: stop.pinY };
+    const seg = corridorPath(prev, dest);
+    all.push(...seg.slice(1));
+    prev = dest;
+  }
+
+  // Remove consecutive duplicate points
+  return all.filter((p, i) => i === 0 || p.x !== all[i - 1].x || p.y !== all[i - 1].y);
 }
