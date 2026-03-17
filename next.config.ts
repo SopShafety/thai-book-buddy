@@ -2,11 +2,11 @@ import type { NextConfig } from "next";
 
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://*.line-scdn.net",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://profile.line-scdn.net",
+  "img-src 'self' data: https://*.line-scdn.net",
   "font-src 'self' data:",
-  "connect-src 'self' https://eoyiqojukzbjgayabcth.supabase.co https://*.line.me",
+  "connect-src 'self' https://eoyiqojukzbjgayabcth.supabase.co https://*.line.me https://*.line-scdn.net",
   "frame-src https://liff.line.me",
   "frame-ancestors 'self' https://*.line.me",
 ].join("; ");
