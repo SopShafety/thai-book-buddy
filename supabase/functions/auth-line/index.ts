@@ -1,12 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = [
+  "https://bookfair-buddy.vercel.app",
+  "https://bookfair-buddy-staging.vercel.app",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin") ?? "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -20,9 +31,8 @@ Deno.serve(async (req: Request) => {
     });
 
     if (!profileRes.ok) {
-      const detail = await profileRes.json();
       return new Response(
-        JSON.stringify({ error: "LINE profile fetch failed", detail }),
+        JSON.stringify({ error: "LINE profile fetch failed" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -58,8 +68,9 @@ Deno.serve(async (req: Request) => {
       });
 
     if (linkError || !linkData?.properties?.hashed_token) {
+      console.error("Failed to generate token:", linkError?.message);
       return new Response(
-        JSON.stringify({ error: "Failed to generate token", detail: linkError?.message }),
+        JSON.stringify({ error: "Failed to generate token" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -73,8 +84,9 @@ Deno.serve(async (req: Request) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("Auth error:", err);
     return new Response(
-      JSON.stringify({ error: "Internal error", detail: String(err) }),
+      JSON.stringify({ error: "Internal error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
