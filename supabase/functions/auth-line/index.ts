@@ -1,5 +1,22 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// In-memory rate limiter: max 10 requests per IP per minute
+const RATE_LIMIT = 10;
+const WINDOW_MS = 60_000;
+const ipHits = new Map<string, { count: number; windowStart: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipHits.get(ip);
+  if (!entry || now - entry.windowStart > WINDOW_MS) {
+    ipHits.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count++;
+  return false;
+}
+
 const ALLOWED_ORIGINS = [
   "https://bookfair-buddy.vercel.app",
   "https://bookfair-buddy-staging.vercel.app",
@@ -20,6 +37,14 @@ Deno.serve(async (req: Request) => {
 
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests" }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
