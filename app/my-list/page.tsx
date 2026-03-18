@@ -42,6 +42,7 @@ export default function MyListPage() {
   const addFormRef = useRef<HTMLDivElement>(null);
   const [editingBookId, setEditingBookId] = useState<string | null>(null);
   const [editPrice, setEditPrice] = useState("");
+  const [editTitle, setEditTitle] = useState("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -219,14 +220,17 @@ export default function MyListPage() {
     );
   }
 
-  async function saveBookPrice(bookId: string) {
+  async function saveBookEdit(bookId: string) {
+    if (!editTitle.trim()) return;
     const parsedEdit = parseInt(editPrice, 10);
     const price = editPrice.trim() && !isNaN(parsedEdit) ? parsedEdit : null;
-    setBooks((prev) => prev.map((b) => b.id === bookId ? { ...b, price } : b));
+    const title = editTitle.trim();
+    setBooks((prev) => prev.map((b) => b.id === bookId ? { ...b, title, price } : b));
     setEditingBookId(null);
     setEditPrice("");
+    setEditTitle("");
     const supabase = getSupabase();
-    await supabase.from("user_books").update({ price }).eq("id", bookId);
+    await supabase.from("user_books").update({ title, price }).eq("id", bookId);
   }
 
   async function togglePurchased(book: Book) {
@@ -460,69 +464,83 @@ export default function MyListPage() {
                           {pubBooks.length > 0 && (
                             <div className="flex flex-col gap-[8px] bg-[#fff8ee] rounded-[8px] p-[12px]">
                               {pubBooks.map((book) => (
-                                <div key={book.id} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-[8px] min-w-0">
-                                    <button
-                                      onClick={() => togglePurchased(book)}
-                                      className={`shrink-0 size-[24px] rounded-full border-2 flex items-center justify-center transition-all ${
-                                        book.is_purchased ? "bg-[#8fad7a] border-[#8fad7a]" : "border-[#9c7a5b]"
-                                      }`}
-                                    >
-                                      {book.is_purchased && (
-                                        <Check size={12} color="white" strokeWidth={3} />
-                                      )}
-                                    </button>
-                                    <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
-                                      {book.title}
-                                    </p>
-                                  </div>
+                                <div key={book.id}>
                                   {editingBookId === book.id ? (
-                                    <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
+                                    /* Edit form — full width */
+                                    <div className="flex flex-col gap-[6px]">
                                       <input
-                                        type="number"
-                                        inputMode="numeric"
-                                        value={editPrice}
-                                        onChange={(e) => setEditPrice(e.target.value)}
-                                        placeholder="ราคา"
+                                        type="text"
+                                        value={editTitle}
+                                        onChange={(e) => setEditTitle(e.target.value)}
+                                        placeholder="ชื่อหนังสือ"
                                         autoFocus
-                                        className="w-[80px] h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                                        className="w-full h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
                                       />
-                                      <button
-                                        onClick={() => saveBookPrice(book.id)}
-                                        className="shrink-0 h-[32px] px-[10px] rounded-[8px] bg-[#c4855a] font-[family-name:var(--font-prompt)] text-[13px] text-white"
-                                      >
-                                        บันทึก
-                                      </button>
-                                      <button
-                                        onClick={() => { setEditingBookId(null); setEditPrice(""); }}
-                                        className="shrink-0 text-[#9c7a5b]"
-                                      >
-                                        <X size={18} strokeWidth={2} />
-                                      </button>
+                                      <div className="flex items-center gap-[6px]">
+                                        <input
+                                          type="number"
+                                          inputMode="numeric"
+                                          value={editPrice}
+                                          onChange={(e) => setEditPrice(e.target.value)}
+                                          placeholder="ราคา"
+                                          className="flex-1 min-w-0 h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                                        />
+                                        <button
+                                          onClick={() => saveBookEdit(book.id)}
+                                          disabled={!editTitle.trim()}
+                                          className={`shrink-0 h-[32px] px-[10px] rounded-[8px] font-[family-name:var(--font-prompt)] text-[13px] text-white transition-colors ${editTitle.trim() ? "bg-[#c4855a]" : "bg-[#e2c9a6]"}`}
+                                        >
+                                          บันทึก
+                                        </button>
+                                        <button
+                                          onClick={() => { setEditingBookId(null); setEditPrice(""); setEditTitle(""); }}
+                                          className="shrink-0 text-[#9c7a5b]"
+                                        >
+                                          <X size={18} strokeWidth={2} />
+                                        </button>
+                                      </div>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
-                                      {book.price != null && (
-                                        <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
-                                          ฿{book.price.toLocaleString()}
+                                    /* Normal book row */
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-[8px] min-w-0">
+                                        <button
+                                          onClick={() => togglePurchased(book)}
+                                          className={`shrink-0 size-[24px] rounded-full border-2 flex items-center justify-center transition-all ${
+                                            book.is_purchased ? "bg-[#8fad7a] border-[#8fad7a]" : "border-[#9c7a5b]"
+                                          }`}
+                                        >
+                                          {book.is_purchased && (
+                                            <Check size={12} color="white" strokeWidth={3} />
+                                          )}
+                                        </button>
+                                        <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                                          {book.title}
                                         </p>
-                                      )}
-                                      {!book.is_purchased && (
-                                        <>
-                                          <button
-                                            onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); }}
-                                            className="text-[#9c7a5b] active:opacity-60 transition-opacity"
-                                          >
-                                            <Pencil size={16} strokeWidth={2} />
-                                          </button>
-                                          <button
-                                            onClick={() => deleteBook(book.id)}
-                                            className="text-[#9c7a5b] active:text-red-400 transition-colors"
-                                          >
-                                            <X size={24} strokeWidth={2} />
-                                          </button>
-                                        </>
-                                      )}
+                                      </div>
+                                      <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
+                                        {book.price != null && (
+                                          <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                                            ฿{book.price.toLocaleString()}
+                                          </p>
+                                        )}
+                                        {!book.is_purchased && (
+                                          <>
+                                            <button
+                                              onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); setEditTitle(book.title); }}
+                                              className="text-[#9c7a5b] active:opacity-60 transition-opacity"
+                                            >
+                                              <Pencil size={16} strokeWidth={2} />
+                                            </button>
+                                            <button
+                                              onClick={() => deleteBook(book.id)}
+                                              className="text-[#9c7a5b] active:text-red-400 transition-colors"
+                                            >
+                                              <X size={24} strokeWidth={2} />
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
