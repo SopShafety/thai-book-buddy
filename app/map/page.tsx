@@ -236,26 +236,39 @@ export default function MapPage() {
             >
               <Navigation size={12} color="#c4855a" strokeWidth={2} />
               <span className="font-[family-name:var(--font-prompt)] text-[12px] text-[#c4855a] font-medium">
-                {showList ? "ซ่อน" : `${route.length} บูธ`}
+                {showList ? "ซ่อน" : `${new Set(route.map(s => s.name_th)).size} สำนักพิมพ์`}
               </span>
             </button>
           </div>
           {showList && (
             <div className="max-h-[32vh] overflow-y-auto">
               <div className="flex flex-col px-[16px] pb-[8px] gap-[10px]">
-                {route.map((stop, i) => (
-                  <div key={`list-${stop.booth}-${i}`} className="flex items-center gap-[12px]">
-                    <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
-                    <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
-                      {stop.name_th}
-                    </p>
-                    <div className="shrink-0 px-[8px] py-[2px] rounded-full bg-[#fff8ee] border border-[#f0e4d4]">
-                      <p className="font-[family-name:var(--font-jakarta)] font-medium text-[12px] text-[#9c7a5b]">
-                        {stop.booth}
+                {(() => {
+                  // Group stops by publisher name, preserving route order
+                  const groups: { name_th: string; booths: string[] }[] = [];
+                  for (const stop of route) {
+                    const existing = groups.find(g => g.name_th === stop.name_th);
+                    if (existing) existing.booths.push(stop.booth);
+                    else groups.push({ name_th: stop.name_th, booths: [stop.booth] });
+                  }
+                  return groups.map((group, i) => (
+                    <div key={`list-${i}`} className="flex items-center gap-[12px]">
+                      <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
+                      <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
+                        {group.name_th}
                       </p>
+                      <div className="flex gap-[4px]">
+                        {group.booths.map(booth => (
+                          <div key={booth} className="shrink-0 px-[8px] py-[2px] rounded-full bg-[#fff8ee] border border-[#f0e4d4]">
+                            <p className="font-[family-name:var(--font-jakarta)] font-medium text-[12px] text-[#9c7a5b]">
+                              {booth}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
           )}
