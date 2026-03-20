@@ -120,13 +120,18 @@ export default function BrowsePage() {
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase();
+    const qNorm = q.replace(/\s+/g, "");
     return publishers.filter((p) => {
+      const nameTh = p.name_th.toLowerCase();
+      const nameEn = (p.name_en ?? "").toLowerCase();
       const matchSearch =
         !q ||
-        p.name_th.toLowerCase().includes(q) ||
-        (p.name_en ?? "").toLowerCase().includes(q);
+        nameTh.includes(q) ||
+        nameEn.includes(q) ||
+        (qNorm && nameTh.replace(/\s+/g, "").includes(qNorm)) ||
+        (qNorm && nameEn.replace(/\s+/g, "").includes(qNorm));
       const matchCategory =
-        activeZone === "ทั้งหมด" || p.category?.includes(activeZone);
+        q || activeZone === "ทั้งหมด" || p.category?.includes(activeZone);
       return matchSearch && matchCategory;
     });
   }, [publishers, debouncedSearch, activeZone]);
