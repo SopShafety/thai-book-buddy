@@ -143,6 +143,13 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
+    // Dev bypass: skip LIFF entirely, force logged-in state
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+      setIsLoggedIn(true);
+      setIsLoading(false);
+      return;
+    }
+
     import("@line/liff")
       .then((liff) => liff.default)
       .then((liff) => {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, X, Plus, Check, BookOpen, Pencil, Trash2, Search } from "lucide-react";
+import { ChevronRight, X, Plus, Check, BookOpen, Pencil, Trash2, Search, NotebookPen, BookPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -50,6 +50,9 @@ export default function MyListPage() {
   const [toast, setToast] = useState<{ message: string; onUndo: (() => void) | null } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
+  const [notesByPublisher, setNotesByPublisher] = useState<Map<string, string>>(new Map());
+  const [addingNoteFor, setAddingNoteFor] = useState<string | null>(null);
+  const [noteInput, setNoteInput] = useState("");
 
   useEffect(() => {
     return () => {
@@ -75,6 +78,25 @@ export default function MyListPage() {
 
   useEffect(() => {
     if (!isLoggedIn) return;
+
+    // Dev bypass: use mock data to preview UI without a Supabase session
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
+      setUserId("dev-user");
+      setPublishers([
+        { id: "p1", name_th: "สำนักพิมพ์แสงดาว", name_en: "Sangdao Publishing", booths: [{ zone: "A", booth_number: "A01" }] },
+        { id: "p2", name_th: "นานมีบุ๊คส์", name_en: "Nanmeebooks", booths: [{ zone: "B", booth_number: "B12" }] },
+        { id: "p3", name_th: "อมรินทร์", name_en: "Amarin", booths: [{ zone: "C", booth_number: "C05" }] },
+      ]);
+      setBooks([
+        { id: "b1", publisher_id: "p1", title: "ดินแดนแห่งความฝัน", price: 280, is_purchased: false },
+        { id: "b2", publisher_id: "p1", title: "มหาสมุทรและหุบเขาเล็กๆ", price: 320, is_purchased: true },
+        { id: "b3", publisher_id: "p2", title: "Harry Potter", price: 450, is_purchased: false },
+      ]);
+      setNotesByPublisher(new Map([["p2", "อยากได้เล่ม special edition ถ้ามี"]]));
+      setLoading(false);
+      return;
+    }
+
     async function load() {
       try {
         const supabase = getSupabase();
@@ -82,7 +104,7 @@ export default function MyListPage() {
           supabase.auth.getUser(),
           supabase
             .from("user_selections")
-            .select("publisher_id, publishers(id, name_th, name_en, booths(zone, booth_number))")
+            .select("publisher_id, note, publishers(id, name_th, name_en, booths(zone, booth_number))")
             .order("created_at"),
           supabase.from("user_books").select("id, publisher_id, title, price, is_purchased").order("created_at"),
         ]);
@@ -94,6 +116,9 @@ export default function MyListPage() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (sels.map((s: any) => Array.isArray(s.publishers) ? s.publishers[0] : s.publishers).filter(Boolean) as Publisher[]).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"))
           );
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const notesMap = new Map<string, string>(sels.filter((s: any) => s.note).map((s: any) => [s.publisher_id, s.note]));
+          setNotesByPublisher(notesMap);
         }
         if (bookData) setBooks(bookData as Book[]);
       } catch {
@@ -130,10 +155,14 @@ export default function MyListPage() {
       next.has(publisherId) ? next.delete(publisherId) : next.add(publisherId);
       return next;
     });
-    // Close add form if collapsing
+    // Close add forms if collapsing
     if (addingFor === publisherId) {
       setAddingFor(null);
       setNewBook({ title: "", price: "" });
+    }
+    if (addingNoteFor === publisherId) {
+      setAddingNoteFor(null);
+      setNoteInput("");
     }
   }
 
@@ -165,14 +194,17 @@ export default function MyListPage() {
     const idx = publishers.findIndex((p) => p.id === publisherId);
     const removed = publishers[idx];
     const removedBooks = books.filter((b) => b.publisher_id === publisherId);
+    const removedNote = notesByPublisher.get(publisherId);
     setPublishers((prev) => prev.filter((p) => p.id !== publisherId));
     setBooks((prev) => prev.filter((b) => b.publisher_id !== publisherId));
+    setNotesByPublisher((prev) => { const next = new Map(prev); next.delete(publisherId); return next; });
     showToast(
       "ลบรายการสำเร็จ",
       () => {
         cancelPending();
         setPublishers((prev) => { const next = [...prev]; next.splice(idx, 0, removed); return next; });
         setBooks((prev) => [...prev, ...removedBooks]);
+        if (removedNote) setNotesByPublisher((prev) => { const next = new Map(prev); next.set(publisherId, removedNote); return next; });
       },
       async () => {
         const supabase = getSupabase();
@@ -218,6 +250,22 @@ export default function MyListPage() {
         await supabase.from("user_books").delete().eq("id", bookId);
       }
     );
+  }
+
+  async function saveNote(publisherId: string) {
+    const trimmed = noteInput.trim();
+    setNotesByPublisher((prev) => {
+      const next = new Map(prev);
+      if (trimmed) next.set(publisherId, trimmed);
+      else next.delete(publisherId);
+      return next;
+    });
+    setAddingNoteFor(null);
+    setNoteInput("");
+    if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH !== "true" && userId) {
+      const supabase = getSupabase();
+      await supabase.from("user_selections").update({ note: trimmed || null }).eq("user_id", userId).eq("publisher_id", publisherId);
+    }
   }
 
   async function saveBookEdit(bookId: string) {
@@ -403,13 +451,15 @@ export default function MyListPage() {
                       </div>
                     </div>
 
-                    {/* Remove button */}
-                    <button
-                      onClick={() => removePublisher(publisher.id)}
-                      className="shrink-0 size-[32px] rounded-[20px] bg-[#fff8ee] flex items-center justify-center active:scale-90 transition-all"
-                    >
-                      <X size={16} color="#e2c9a6" strokeWidth={2} />
-                    </button>
+                    {/* Remove button — only visible when expanded */}
+                    {isExpanded && (
+                      <button
+                        onClick={() => removePublisher(publisher.id)}
+                        className="shrink-0 size-[32px] rounded-[20px] bg-[#fff8ee] flex items-center justify-center active:scale-90 transition-all"
+                      >
+                        <X size={16} color="#e2c9a6" strokeWidth={2} />
+                      </button>
+                    )}
                   </div>
 
                   {/* Expanded content */}
@@ -464,7 +514,7 @@ export default function MyListPage() {
                           {pubBooks.length > 0 && (
                             <div className="flex flex-col gap-[8px] bg-[#fff8ee] rounded-[8px] p-[12px]">
                               {pubBooks.map((book) => (
-                                <div key={book.id}>
+                                <div key={book.id} className="flex flex-col">
                                   {editingBookId === book.id ? (
                                     /* Edit form — full width */
                                     <div className="flex flex-col gap-[6px]">
@@ -545,19 +595,89 @@ export default function MyListPage() {
                                   )}
                                 </div>
                               ))}
+                              {/* Per-publisher subtotal */}
+                              {pubBooks.some((b) => b.price != null) && (
+                                <div className="flex flex-col gap-[8px] pt-[4px]">
+                                  <div className="h-px bg-[#f0e4d4]" />
+                                  <div className="flex gap-[8px] items-center justify-end">
+                                    <span className="font-[family-name:var(--font-jakarta)] text-[16px] text-[#6a7282]">รวม</span>
+                                    <span className="font-[family-name:var(--font-jakarta)] font-semibold text-[16px] text-[#6a7282]">
+                                      {pubBooks.reduce((sum, b) => sum + (b.price ?? 0), 0).toLocaleString()}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 
-                          {/* Add book button */}
-                          <button
-                            onClick={() => setAddingFor(publisher.id)}
-                            className="flex items-center justify-center gap-[4px] w-full"
-                          >
-                            <Plus size={24} color="#c4855a" strokeWidth={2} />
-                            <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">
-                              เพิ่มหนังสือ
-                            </span>
-                          </button>
+                          {/* Note display */}
+                          {notesByPublisher.has(publisher.id) && !addingNoteFor && (
+                            <div className="flex gap-[8px] items-start bg-[#fff8ee] rounded-[8px] p-[12px]">
+                              <p className="flex-1 font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282] min-w-0">
+                                {notesByPublisher.get(publisher.id)}
+                              </p>
+                              <button
+                                onClick={() => { setAddingNoteFor(publisher.id); setNoteInput(notesByPublisher.get(publisher.id) ?? ""); }}
+                                className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
+                              >
+                                <Pencil size={16} strokeWidth={2} />
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Note form */}
+                          {addingNoteFor === publisher.id && (
+                            <div className="flex flex-col gap-[4px]">
+                              <div className={`flex h-[85px] items-start px-[12px] py-[8px] rounded-[16px] border bg-[#fafaf8] transition-colors ${noteInput.length > 0 ? "border-[#973c00]" : "border-[#f0e4d4]"}`}>
+                                <textarea
+                                  value={noteInput}
+                                  onChange={(e) => setNoteInput(e.target.value.slice(0, 200))}
+                                  placeholder="จดโน้ต"
+                                  autoFocus
+                                  className="flex-1 resize-none bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
+                                />
+                              </div>
+                              <p className="self-end font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#746d67]">
+                                {noteInput.length}/200
+                              </p>
+                              <div className="flex gap-[8px]">
+                                <button
+                                  onClick={() => saveNote(publisher.id)}
+                                  className={`flex-1 h-[48px] rounded-[12px] font-[family-name:var(--font-prompt)] text-[16px] text-white transition-colors ${noteInput.trim() ? "bg-[#c4855a]" : "bg-[#e2c9a6]"}`}
+                                >
+                                  บันทึก
+                                </button>
+                                <button
+                                  onClick={() => { setAddingNoteFor(null); setNoteInput(""); }}
+                                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                                >
+                                  ยกเลิก
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action buttons row */}
+                          {!addingNoteFor && (
+                            <div className="flex items-center justify-between">
+                              {!notesByPublisher.has(publisher.id) && (
+                                <button
+                                  onClick={() => { setAddingNoteFor(publisher.id); setNoteInput(""); }}
+                                  className="flex flex-1 items-center justify-center gap-[4px]"
+                                >
+                                  <NotebookPen size={20} color="#c4855a" strokeWidth={1.8} />
+                                  <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">เพิ่มโน้ต</span>
+                                </button>
+                              )}
+                              <button
+                                onClick={() => setAddingFor(publisher.id)}
+                                className="flex flex-1 items-center justify-center gap-[4px]"
+                              >
+                                <BookPlus size={20} color="#c4855a" strokeWidth={1.8} />
+                                <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">เพิ่มหนังสือ</span>
+                              </button>
+                            </div>
+                          )}
                         </>
                       )}
                     </>
