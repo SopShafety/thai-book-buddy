@@ -314,6 +314,39 @@ function buildRoute(pairs: { booth: string; name_th: string }[]): RouteStop[] {
   return route;
 }
 
+// Returns the intersection point of segment p1→p2 with a polygon edge, closest to p1.
+// Falls back to p2 if no intersection found (e.g. p2 is outside the polygon).
+function polygonEdgePoint(
+  polygon: [number, number][],
+  p1: { x: number; y: number },
+  p2: { x: number; y: number }
+): { x: number; y: number } {
+  let best: { x: number; y: number } | null = null;
+  let bestDist = Infinity;
+
+  for (let i = 0; i < polygon.length; i++) {
+    const [ax, ay] = polygon[i];
+    const [bx, by] = polygon[(i + 1) % polygon.length];
+
+    // Segment-segment intersection: p1→p2 with polygon edge a→b
+    const dx1 = p2.x - p1.x, dy1 = p2.y - p1.y;
+    const dx2 = bx - ax, dy2 = by - ay;
+    const denom = dx1 * dy2 - dy1 * dx2;
+    if (Math.abs(denom) < 1e-10) continue;
+
+    const t = ((ax - p1.x) * dy2 - (ay - p1.y) * dx2) / denom;
+    const u = ((ax - p1.x) * dy1 - (ay - p1.y) * dx1) / denom;
+
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      const pt = { x: p1.x + t * dx1, y: p1.y + t * dy1 };
+      const d = Math.hypot(pt.x - p1.x, pt.y - p1.y);
+      if (d < bestDist) { bestDist = d; best = pt; }
+    }
+  }
+
+  return best ?? p2;
+}
+
 function buildWaypoints(route: RouteStop[]): { x: number; y: number }[] {
   if (route.length === 0) return [];
 
@@ -346,10 +379,16 @@ function buildWaypoints(route: RouteStop[]): { x: number; y: number }[] {
   let prev: Pt = MRT_ENTRANCE;
 
   for (const stop of route) {
-    const dest: Pt = { x: stop.pinX, y: stop.pinY };
-    const seg = corridorPath(prev, dest);
+    const pinCenter: Pt = { x: stop.pinX, y: stop.pinY };
+    const seg = corridorPath(prev, pinCenter);
+
+    // Replace the last point (pin center) with the polygon boundary intersection
+    // so the line stops at the booth edge instead of crossing into it.
+    const approachFrom = seg[seg.length - 2] ?? prev;
+    seg[seg.length - 1] = polygonEdgePoint(stop.polygon, approachFrom, pinCenter);
+
     all.push(...seg.slice(1));
-    prev = dest;
+    prev = pinCenter; // Use pin center as origin for the next segment
   }
 
   // Remove consecutive duplicate points

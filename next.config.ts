@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://*.line-scdn.net",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://*.line-scdn.net`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://*.line-scdn.net",
   "font-src 'self' data:",
