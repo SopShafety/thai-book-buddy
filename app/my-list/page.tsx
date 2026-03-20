@@ -451,7 +451,7 @@ export default function MyListPage() {
                       </div>
                     </div>
 
-                    {/* Remove button — only visible when expanded */}
+                    {/* Remove button — visible when card is expanded */}
                     {isExpanded && (
                       <button
                         onClick={() => removePublisher(publisher.id)}
@@ -508,91 +508,89 @@ export default function MyListPage() {
                             </div>
                           </div>
                         </div>
+                      ) : pubBooks.some((b) => b.id === editingBookId) ? (
+                        /* Edit book form — takes over card content */
+                        <div className="flex flex-col gap-[8px]">
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="ชื่อหนังสือ"
+                            autoFocus
+                            className="h-[48px] w-full rounded-[16px] border bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] border-[#f0e4d4] transition-colors"
+                          />
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={editPrice}
+                            onChange={(e) => setEditPrice(e.target.value)}
+                            placeholder="ราคา (บาท)"
+                            className="h-[48px] w-full rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+                          />
+                          <div className="flex gap-[8px]">
+                            <button
+                              onClick={() => saveBookEdit(editingBookId!)}
+                              disabled={!editTitle.trim()}
+                              className={`flex-1 h-[48px] rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-colors ${editTitle.trim() ? "bg-[#c4855a] border-[#c4855a]" : "bg-[#e2c9a6] border-[#e2c9a6]"}`}
+                            >
+                              บันทึก
+                            </button>
+                            <button
+                              onClick={() => { setEditingBookId(null); setEditPrice(""); setEditTitle(""); }}
+                              className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                            >
+                              ยกเลิก
+                            </button>
+                          </div>
+                          <div className="h-px bg-[#f0e4d4]" />
+                          <button
+                            onClick={() => { deleteBook(editingBookId!); setEditingBookId(null); setEditPrice(""); setEditTitle(""); }}
+                            className="flex items-center justify-center gap-[4px] w-full active:opacity-60 transition-opacity"
+                          >
+                            <Trash2 size={20} color="#df442b" strokeWidth={1.8} />
+                            <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#df442b]">ลบรายการ</span>
+                          </button>
+                        </div>
                       ) : (
                         <>
-                          {/* Books list */}
-                          {pubBooks.length > 0 && (
+                          {/* Books list + note */}
+                          {(pubBooks.length > 0 || (notesByPublisher.has(publisher.id) && addingNoteFor !== publisher.id)) && (
                             <div className="flex flex-col gap-[8px] bg-[#fff8ee] rounded-[8px] p-[12px]">
                               {pubBooks.map((book) => (
                                 <div key={book.id} className="flex flex-col">
-                                  {editingBookId === book.id ? (
-                                    /* Edit form — full width */
-                                    <div className="flex flex-col gap-[6px]">
-                                      <input
-                                        type="text"
-                                        value={editTitle}
-                                        onChange={(e) => setEditTitle(e.target.value)}
-                                        placeholder="ชื่อหนังสือ"
-                                        autoFocus
-                                        className="w-full h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
-                                      />
-                                      <div className="flex items-center gap-[6px]">
-                                        <input
-                                          type="number"
-                                          inputMode="numeric"
-                                          value={editPrice}
-                                          onChange={(e) => setEditPrice(e.target.value)}
-                                          placeholder="ราคา"
-                                          className="flex-1 min-w-0 h-[32px] rounded-[8px] border border-[#f0e4d4] bg-[#fafaf8] px-[8px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
-                                        />
-                                        <button
-                                          onClick={() => saveBookEdit(book.id)}
-                                          disabled={!editTitle.trim()}
-                                          className={`shrink-0 h-[32px] px-[10px] rounded-[8px] font-[family-name:var(--font-prompt)] text-[13px] text-white transition-colors ${editTitle.trim() ? "bg-[#c4855a]" : "bg-[#e2c9a6]"}`}
-                                        >
-                                          บันทึก
-                                        </button>
-                                        <button
-                                          onClick={() => { setEditingBookId(null); setEditPrice(""); setEditTitle(""); }}
-                                          className="shrink-0 text-[#9c7a5b]"
-                                        >
-                                          <X size={18} strokeWidth={2} />
-                                        </button>
-                                      </div>
+                                  {/* Normal book row */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-[8px] min-w-0">
+                                      <button
+                                        onClick={() => togglePurchased(book)}
+                                        className={`shrink-0 size-[24px] rounded-full border-2 flex items-center justify-center transition-all ${
+                                          book.is_purchased ? "bg-[#8fad7a] border-[#8fad7a]" : "border-[#9c7a5b]"
+                                        }`}
+                                      >
+                                        {book.is_purchased && (
+                                          <Check size={12} color="white" strokeWidth={3} />
+                                        )}
+                                      </button>
+                                      <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                                        {book.title}
+                                      </p>
                                     </div>
-                                  ) : (
-                                    /* Normal book row */
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-[8px] min-w-0">
-                                        <button
-                                          onClick={() => togglePurchased(book)}
-                                          className={`shrink-0 size-[24px] rounded-full border-2 flex items-center justify-center transition-all ${
-                                            book.is_purchased ? "bg-[#8fad7a] border-[#8fad7a]" : "border-[#9c7a5b]"
-                                          }`}
-                                        >
-                                          {book.is_purchased && (
-                                            <Check size={12} color="white" strokeWidth={3} />
-                                          )}
-                                        </button>
-                                        <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
-                                          {book.title}
+                                    <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
+                                      {book.price != null && (
+                                        <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                                          ฿{book.price.toLocaleString()}
                                         </p>
-                                      </div>
-                                      <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
-                                        {book.price != null && (
-                                          <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
-                                            ฿{book.price.toLocaleString()}
-                                          </p>
-                                        )}
-                                        {!book.is_purchased && (
-                                          <>
-                                            <button
-                                              onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); setEditTitle(book.title); }}
-                                              className="text-[#9c7a5b] active:opacity-60 transition-opacity"
-                                            >
-                                              <Pencil size={16} strokeWidth={2} />
-                                            </button>
-                                            <button
-                                              onClick={() => deleteBook(book.id)}
-                                              className="text-[#9c7a5b] active:text-red-400 transition-colors"
-                                            >
-                                              <X size={24} strokeWidth={2} />
-                                            </button>
-                                          </>
-                                        )}
-                                      </div>
+                                      )}
+                                      {!book.is_purchased && (
+                                        <button
+                                          onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); setEditTitle(book.title); }}
+                                          className="text-[#9c7a5b] active:opacity-60 transition-opacity"
+                                        >
+                                          <Pencil size={16} strokeWidth={2} />
+                                        </button>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
                               ))}
                               {/* Per-publisher subtotal */}
@@ -607,21 +605,20 @@ export default function MyListPage() {
                                   </div>
                                 </div>
                               )}
-                            </div>
-                          )}
-
-                          {/* Note display */}
-                          {notesByPublisher.has(publisher.id) && !addingNoteFor && (
-                            <div className="flex gap-[8px] items-start bg-[#fff8ee] rounded-[8px] p-[12px]">
-                              <p className="flex-1 font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282] min-w-0">
-                                {notesByPublisher.get(publisher.id)}
-                              </p>
-                              <button
-                                onClick={() => { setAddingNoteFor(publisher.id); setNoteInput(notesByPublisher.get(publisher.id) ?? ""); }}
-                                className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
-                              >
-                                <Pencil size={16} strokeWidth={2} />
-                              </button>
+                              {/* Note display — inside the book container */}
+                              {notesByPublisher.has(publisher.id) && (
+                                <div className="flex gap-[8px] items-start">
+                                  <p className="flex-1 font-[family-name:var(--font-jakarta)] text-[12px] text-[#6a7282] min-w-0">
+                                    {notesByPublisher.get(publisher.id)}
+                                  </p>
+                                  <button
+                                    onClick={() => { setAddingNoteFor(publisher.id); setNoteInput(notesByPublisher.get(publisher.id) ?? ""); }}
+                                    className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
+                                  >
+                                    <Pencil size={16} strokeWidth={2} />
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
 
