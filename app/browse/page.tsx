@@ -124,12 +124,14 @@ export default function BrowsePage() {
     return publishers.filter((p) => {
       const nameTh = p.name_th.toLowerCase();
       const nameEn = (p.name_en ?? "").toLowerCase();
+      const boothNumbers = (p.booths ?? []).map((b) => b.booth_number.toLowerCase());
       const matchSearch =
         !q ||
         nameTh.includes(q) ||
         nameEn.includes(q) ||
         (qNorm && nameTh.replace(/\s+/g, "").includes(qNorm)) ||
-        (qNorm && nameEn.replace(/\s+/g, "").includes(qNorm));
+        (qNorm && nameEn.replace(/\s+/g, "").includes(qNorm)) ||
+        boothNumbers.some((bn) => bn.includes(q));
       const matchCategory =
         q || activeZone === "ทั้งหมด" || p.category?.includes(activeZone);
       return matchSearch && matchCategory;
