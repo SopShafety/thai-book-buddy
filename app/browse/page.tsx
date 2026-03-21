@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
 import PublisherCard from "../../components/PublisherCard";
@@ -269,7 +270,14 @@ export default function BrowsePage() {
             <div className="shrink-0 size-[20px] rounded-full bg-[#c4855a] flex items-center justify-center">
               <Check size={12} color="white" strokeWidth={3} />
             </div>
-            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast}</p>
+            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a] flex-1">{toast}</p>
+            <Link
+              href="/my-list"
+              onClick={() => setToast(null)}
+              className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#c4855a] shrink-0"
+            >
+              ดูรายการ
+            </Link>
           </div>
         </div>
       )}
