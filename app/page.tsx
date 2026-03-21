@@ -40,10 +40,16 @@ export default function Home() {
           </div>
         )}
         {(liffError || authError) && (
-          <div className="mb-[12px] px-[16px] py-[12px] rounded-[12px] bg-red-50 border border-red-200">
+          <div className="mb-[12px] px-[16px] py-[12px] rounded-[12px] bg-red-50 border border-red-200 flex flex-col gap-[8px]">
             <p className="font-[family-name:var(--font-sarabun)] font-light text-[13px] text-red-600 text-center leading-relaxed">
-              {liffError ?? authError}
+              มีบางอย่างผิดพลาด กรุณาลองใหม่อีกครั้ง
             </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="font-[family-name:var(--font-jakarta)] font-medium text-[14px] text-red-600 underline text-center"
+            >
+              Try again
+            </button>
           </div>
         )}
         {liff && !isLoggedIn && (

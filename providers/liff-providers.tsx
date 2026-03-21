@@ -71,6 +71,8 @@ async function signInWithLINE(
   const onboardingCached = localStorage.getItem(ONBOARDING_KEY) === "true";
 
   // Step 1: Edge Function — verify LINE token + get profile
+  const controller = new AbortController();
+  const fetchTimeout = setTimeout(() => controller.abort(), 15_000);
   let res: Response;
   try {
     res = await fetch(
@@ -82,10 +84,17 @@ async function signInWithLINE(
           Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ accessToken }),
+        signal: controller.signal,
       }
     );
+    clearTimeout(fetchTimeout);
   } catch (err) {
-    return { error: `Fetch failed: ${String(err)}`, needsOnboarding: false };
+    clearTimeout(fetchTimeout);
+    const msg =
+      err instanceof DOMException && err.name === "AbortError"
+        ? "Request timed out. Please try again."
+        : `Fetch failed: ${String(err)}`;
+    return { error: msg, needsOnboarding: false };
   }
 
   const edgeData = await res.json();
@@ -153,8 +162,13 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
     import("@line/liff")
       .then((liff) => liff.default)
       .then((liff) => {
-        liff
-          .init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! })
+        const initTimeout = new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Connection timed out. Please reload and try again.")),
+            10_000
+          )
+        );
+        Promise.race([liff.init({ liffId: process.env.NEXT_PUBLIC_LIFF_ID! }), initTimeout])
           .then(async () => {
             setLiffObject(liff);
             setIsLoggedIn(liff.isLoggedIn());
@@ -162,6 +176,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
             if (liff.isLoggedIn()) {
               const { error, needsOnboarding } = await signInWithLINE(liff);
               if (error) {
+                console.error("[Auth error]", error);
                 setAuthError(error);
                 liff.logout();
                 setIsLoggedIn(false);
@@ -178,6 +193,7 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
             }
           })
           .catch((error: Error) => {
+            console.error("[LIFF init error]", error);
             setLiffError(error.toString());
           })
           .finally(() => {
