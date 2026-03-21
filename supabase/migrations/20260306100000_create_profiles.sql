@@ -7,18 +7,27 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 
-create policy "Users can read own profile"
-  on profiles for select
-  to authenticated
-  using (auth.uid() = id);
+do $$ begin
+  create policy "Users can read own profile"
+    on profiles for select
+    to authenticated
+    using (auth.uid() = id);
+exception when duplicate_object then null;
+end $$;
 
-create policy "Users can insert own profile"
-  on profiles for insert
-  to authenticated
-  with check (auth.uid() = id);
+do $$ begin
+  create policy "Users can insert own profile"
+    on profiles for insert
+    to authenticated
+    with check (auth.uid() = id);
+exception when duplicate_object then null;
+end $$;
 
-create policy "Users can update own profile"
-  on profiles for update
-  to authenticated
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
+do $$ begin
+  create policy "Users can update own profile"
+    on profiles for update
+    to authenticated
+    using (auth.uid() = id)
+    with check (auth.uid() = id);
+exception when duplicate_object then null;
+end $$;
