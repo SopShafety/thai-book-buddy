@@ -14,7 +14,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
   const category = publisher.category?.[0]?.replace("โซน", "").trim();
 
   return (
-    <div className="bg-white border border-[#fff8ee] rounded-[16px] flex gap-[16px] items-start p-[24px]">
+    <div className="bg-white border border-[#fff8ee] rounded-[16px] flex gap-[16px] items-start p-[24px] cursor-pointer active:opacity-80 transition-opacity" onClick={() => onToggle(publisher.id)}>
       {/* Booth number */}
       <div className="shrink-0 w-[56px]">
         <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[24px] text-[#3d2b1a] leading-none">
@@ -45,7 +45,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
 
       {/* Add / Added button */}
       <button
-        onClick={() => onToggle(publisher.id)}
+        onClick={(e) => { e.stopPropagation(); onToggle(publisher.id); }}
         className="shrink-0 flex items-center gap-[4px] active:scale-90 transition-all"
       >
         {selected ? (
