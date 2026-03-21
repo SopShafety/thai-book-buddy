@@ -55,6 +55,7 @@ export default function BrowsePage() {
         { id: "mock-5", name_th: "บ้านพระอาทิตย์", name_en: "Baan Phra Arthit", booths: [{ zone: "E", booth_number: "E03" }] },
       ]);
       setUserId("preview-user");
+      setSelectedIds(new Set(["mock-1", "mock-3"]));
       setPubsLoaded(true);
       setUserLoaded(true);
       return;
@@ -200,10 +201,10 @@ export default function BrowsePage() {
         {/* Header — scrolls away */}
         <div className="px-[16px] pt-[24px] pb-[12px]">
           <BrandHeader />
-          <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
+          <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
             รายชื่อผู้ออกบูธ
           </p>
-          <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282] mt-[2px]">
+          <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282] mt-[2px]">
             {totalBooths} บูธ
           </p>
         </div>
@@ -223,7 +224,7 @@ export default function BrowsePage() {
                 <button
                   key={cat}
                   onClick={() => setActiveZone(cat)}
-                  className={`shrink-0 px-[12px] py-[4px] rounded-[20px] text-[14px] font-[family-name:var(--font-prompt)] transition-all ${
+                  className={`shrink-0 px-[12px] py-[4px] rounded-[20px] text-[14px] font-[family-name:var(--font-sarabun)] transition-all ${
                     active
                       ? "bg-[#c4855a] text-[#fafaf8] font-semibold"
                       : "bg-[#fff8ee] border border-[#f0e4d4] text-[#9c7a5b] font-light"
@@ -237,7 +238,7 @@ export default function BrowsePage() {
 
           {/* Count row */}
           <div className="flex items-center justify-between px-[16px] pb-[12px]">
-          <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+          <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282]">
             {filtered.length} สำนักพิมพ์
             {!userLoaded && isLoggedIn && (
               <span className="ml-[8px] inline-flex items-center gap-[3px] translate-y-[1px]">
@@ -254,7 +255,7 @@ export default function BrowsePage() {
           {selectedIds.size > 0 && (
             <div className="flex items-center gap-[4px]">
               <Bookmark size={20} color="#6a7282" strokeWidth={1.8} />
-              <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+              <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282]">
                 {selectedIds.size} รายการ
               </p>
             </div>
@@ -266,7 +267,7 @@ export default function BrowsePage() {
         <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
           {filtered.length === 0 ? (
             <div className="flex items-center justify-center h-[200px]">
-              <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
+              <p className="font-[family-name:var(--font-sarabun)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
             </div>
           ) : (
             filtered.map((p) => (
@@ -287,9 +288,9 @@ export default function BrowsePage() {
             <div className="shrink-0 size-[20px] rounded-full bg-[#c4855a] flex items-center justify-center">
               <Check size={12} color="white" strokeWidth={3} />
             </div>
-            <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a] flex-1">{toast}</p>
+            <p className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#3d2b1a] flex-1">{toast}</p>
             <Link href="/my-list" onClick={() => setToast(null)} className="shrink-0">
-              <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">
+              <span className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#973c00]">
                 ดูรายการ
               </span>
             </Link>
@@ -304,10 +305,10 @@ export default function BrowsePage() {
           <div className="absolute inset-0 z-30 flex items-end justify-center bg-black/40" onClick={() => setConfirmPublisherId(null)}>
             <div className="w-full bg-[#fafaf8] rounded-t-[24px] p-[24px] flex flex-col gap-[16px]" onClick={(e) => e.stopPropagation()}>
               <div className="flex flex-col gap-[8px]">
-                <p className="font-[family-name:var(--font-prompt)] font-semibold text-[18px] text-[#3d2b1a]">
+                <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[18px] text-[#3d2b1a]">
                   ลบสำนักพิมพ์นี้?
                 </p>
-                <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+                <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282]">
                   {pub?.name_th} มีหนังสือในรายการ {count} เล่ม หากลบสำนักพิมพ์นี้ หนังสือทั้งหมดจะถูกลบออกด้วย
                 </p>
               </div>
@@ -318,13 +319,13 @@ export default function BrowsePage() {
                     setConfirmPublisherId(null);
                     await doRemoveOrAdd(id, true);
                   }}
-                  className="flex-1 h-[48px] rounded-[12px] bg-[#c4855a] font-[family-name:var(--font-prompt)] text-[16px] text-white"
+                  className="flex-1 h-[48px] rounded-[12px] bg-[#c4855a] font-[family-name:var(--font-sarabun)] text-[16px] text-white"
                 >
                   ลบออก
                 </button>
                 <button
                   onClick={() => setConfirmPublisherId(null)}
-                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                  className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-sarabun)] text-[16px] text-[#c4855a]"
                 >
                   ยกเลิก
                 </button>

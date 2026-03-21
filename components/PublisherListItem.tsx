@@ -137,7 +137,7 @@ export default function PublisherListItem({
           </div>
           {/* Name + book count badge */}
           <div className="flex flex-[1_0_0] min-w-px flex-col items-start gap-[4px]">
-            <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
+            <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#3d2b1a] truncate w-full">
               {publisher.name_th}
             </p>
             {publisher.name_en && (
@@ -148,7 +148,7 @@ export default function PublisherListItem({
             {pubBooks.length > 0 && !isExpanded && (
               <div className="inline-flex items-center gap-[4px] px-[12px] py-[4px] rounded-[20px] bg-[#f0e4d4]">
                 <BookOpen size={16} color="#973c00" strokeWidth={1.5} />
-                <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#973c00]">
+                <span className="font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#973c00]">
                   {pubBooks.length} เล่ม
                 </span>
               </div>
@@ -212,7 +212,7 @@ export default function PublisherListItem({
                           >
                             {book.is_purchased && <Check size={12} color="white" strokeWidth={3} />}
                           </button>
-                          <p className={`font-[family-name:var(--font-jakarta)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
+                          <p className={`font-[family-name:var(--font-sarabun)] text-[16px] truncate ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
                             {book.title}
                           </p>
                         </div>
@@ -256,7 +256,7 @@ export default function PublisherListItem({
                   {note && !isAddingNote && (
                     <div className="flex flex-col gap-[4px]">
                       <div className="flex items-start justify-between">
-                        <p className="font-[family-name:var(--font-jakarta)] font-medium text-[16px] text-[#6a7282]">โน้ต</p>
+                        <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#6a7282]">โน้ต</p>
                         <button
                           onClick={() => { setIsAddingNote(true); setNoteInput(note); }}
                           className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
@@ -264,7 +264,7 @@ export default function PublisherListItem({
                           <Pencil size={16} strokeWidth={2} />
                         </button>
                       </div>
-                      <p className="font-[family-name:var(--font-jakarta)] text-[16px] text-[#6a7282]">
+                      <p className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#6a7282]">
                         {note}
                       </p>
                     </div>
@@ -281,22 +281,22 @@ export default function PublisherListItem({
                       onChange={(e) => setNoteInput(e.target.value.slice(0, 200))}
                       placeholder="จดโน้ต"
                       autoFocus
-                      className="flex-1 resize-none bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
+                      className="flex-1 resize-none bg-transparent font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
                     />
                   </div>
-                  <p className="self-end font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#746d67]">
+                  <p className="self-end font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#746d67]">
                     {noteInput.length}/200
                   </p>
                   <div className="flex gap-[8px]">
                     <button
                       onClick={saveNote}
-                      className={`flex-1 h-[48px] rounded-[12px] font-[family-name:var(--font-prompt)] text-[16px] text-white transition-colors ${noteInput.trim() ? "bg-[#c4855a]" : "bg-[#e2c9a6]"}`}
+                      className={`flex-1 h-[48px] rounded-[12px] font-[family-name:var(--font-sarabun)] text-[16px] text-white transition-colors ${noteInput.trim() ? "bg-[#c4855a]" : "bg-[#e2c9a6]"}`}
                     >
                       บันทึก
                     </button>
                     <button
                       onClick={() => { setIsAddingNote(false); setNoteInput(""); }}
-                      className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]"
+                      className="flex-1 h-[48px] rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-sarabun)] text-[16px] text-[#c4855a]"
                     >
                       ยกเลิก
                     </button>
@@ -310,7 +310,7 @@ export default function PublisherListItem({
                   {note ? (
                     <div className="flex flex-1 items-center justify-center gap-[4px]">
                       <NotebookPen size={20} color="#a6a09b" strokeWidth={1.8} />
-                      <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#a6a09b]">เพิ่มโน้ตแล้ว</span>
+                      <span className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#a6a09b]">เพิ่มโน้ตแล้ว</span>
                     </div>
                   ) : (
                     <button
@@ -318,7 +318,7 @@ export default function PublisherListItem({
                       className="flex flex-1 items-center justify-center gap-[4px]"
                     >
                       <NotebookPen size={20} color="#c4855a" strokeWidth={1.8} />
-                      <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">เพิ่มโน้ต</span>
+                      <span className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#c4855a]">เพิ่มโน้ต</span>
                     </button>
                   )}
                   <button
@@ -326,7 +326,7 @@ export default function PublisherListItem({
                     className="flex flex-1 items-center justify-center gap-[4px]"
                   >
                     <BookPlus size={20} color="#c4855a" strokeWidth={1.8} />
-                    <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a]">เพิ่มหนังสือ</span>
+                    <span className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#c4855a]">เพิ่มหนังสือ</span>
                   </button>
                 </div>
               )}

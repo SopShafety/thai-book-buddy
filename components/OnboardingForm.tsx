@@ -52,10 +52,10 @@ export default function OnboardingForm() {
       <BrandHeader />
 
       <div className="mt-[24px] mb-[32px]">
-        <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
+        <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
           บอกเราเพิ่มเติม
         </p>
-        <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] mt-[4px]">
+        <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#9c7a5b] mt-[4px]">
           ช่วยให้เราแนะนำหนังสือได้ตรงใจมากขึ้น
         </p>
       </div>
@@ -63,7 +63,7 @@ export default function OnboardingForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-[32px] flex-1">
         {/* Age range */}
         <div className="flex flex-col gap-[12px]">
-          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a]">
+          <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#3d2b1a]">
             ช่วงอายุ
           </p>
           <div className="grid grid-cols-2 gap-[8px]">
@@ -80,7 +80,7 @@ export default function OnboardingForm() {
                       : "bg-[#fff8ee] border-[#f0e4d4] text-[#9c7a5b]"
                   }`}
                 >
-                  <span className={`font-[family-name:var(--font-prompt)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
+                  <span className={`font-[family-name:var(--font-sarabun)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
                     {opt.label}
                   </span>
                   {selected && (
@@ -96,7 +96,7 @@ export default function OnboardingForm() {
 
         {/* Gender */}
         <div className="flex flex-col gap-[12px]">
-          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a]">
+          <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#3d2b1a]">
             เพศ
           </p>
           <div className="grid grid-cols-2 gap-[8px]">
@@ -113,7 +113,7 @@ export default function OnboardingForm() {
                       : "bg-[#fff8ee] border-[#f0e4d4] text-[#9c7a5b]"
                   }`}
                 >
-                  <span className={`font-[family-name:var(--font-prompt)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
+                  <span className={`font-[family-name:var(--font-sarabun)] text-[14px] ${selected ? "font-medium" : "font-light"}`}>
                     {opt.label}
                   </span>
                   {selected && (
@@ -128,7 +128,7 @@ export default function OnboardingForm() {
         </div>
 
         {error && (
-          <p className="font-[family-name:var(--font-prompt)] font-light text-[13px] text-red-400 -mt-[16px]">
+          <p className="font-[family-name:var(--font-sarabun)] font-light text-[13px] text-red-400 -mt-[16px]">
             {error}
           </p>
         )}
@@ -139,7 +139,7 @@ export default function OnboardingForm() {
             disabled={submitting || !age || !gender}
             className="flex h-[56px] w-full items-center justify-center rounded-[16px] bg-[#c4855a] active:scale-95 transition-all disabled:opacity-40"
           >
-            <span className="font-[family-name:var(--font-prompt)] font-semibold text-[18px] text-white">
+            <span className="font-[family-name:var(--font-sarabun)] font-semibold text-[18px] text-white">
               {submitting ? "กำลังบันทึก..." : "ยืนยัน"}
             </span>
           </button>
@@ -148,7 +148,7 @@ export default function OnboardingForm() {
             onClick={skipOnboarding}
             className="flex h-[48px] w-full items-center justify-center active:opacity-60 transition-opacity"
           >
-            <span className="font-[family-name:var(--font-prompt)] font-light text-[16px] text-[#9c7a5b]">
+            <span className="font-[family-name:var(--font-sarabun)] font-light text-[16px] text-[#9c7a5b]">
               ข้ามไปก่อน
             </span>
           </button>

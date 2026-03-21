@@ -232,7 +232,7 @@ export default function MyListPage() {
           {/* Brand */}
           <div className="flex flex-col items-start">
             <BrandHeader />
-            <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
+            <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
               รายการของฉัน
             </p>
           </div>
@@ -241,21 +241,21 @@ export default function MyListPage() {
           <div className="bg-[#f3ffeb] border border-[#c4d8b6] rounded-[16px] p-[24px]">
             <div className="flex items-center justify-between w-full">
               <div className="flex flex-col gap-[4px] items-center shrink-0">
-                <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
+                <p className="font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#9c7a5b]">จำนวนบูธ</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none">
                   {publishers.length}
                 </p>
               </div>
               <div className="w-px h-[57px] bg-[#c4d8b6] shrink-0" />
               <div className="flex flex-col gap-[4px] items-center shrink-0 w-[64px]">
-                <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">หนังสือ</p>
+                <p className="font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#9c7a5b]">หนังสือ</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#e2c9a6] leading-none text-center">
                   {books.length}
                 </p>
               </div>
               <div className="w-px h-[57px] bg-[#c4d8b6] shrink-0" />
               <div className="flex flex-col gap-[4px] items-center shrink-0">
-                <p className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">ราคา</p>
+                <p className="font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#9c7a5b]">ราคา</p>
                 <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[28px] text-[#c4855a] leading-none">
                   ฿{totalBudget.toLocaleString()}
                 </p>
@@ -269,7 +269,7 @@ export default function MyListPage() {
           <div className="sticky top-0 z-10 bg-[#fafaf8] px-[16px] pt-[12px] pb-[8px] flex flex-col gap-[8px]">
             <SearchBar onSearch={setDebouncedSearch} placeholder="ค้นหาสำนักพิมพ์..." />
             <div className="flex items-center justify-between px-[4px]">
-              <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#6a7282]">
+              <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282]">
                 {filteredPublishers.length} สำนักพิมพ์
               </p>
               <button
@@ -277,7 +277,7 @@ export default function MyListPage() {
                   const allExpanded = publishers.every((p) => expanded.has(p.id));
                   setExpanded(allExpanded ? new Set() : new Set(publishers.map((p) => p.id)));
                 }}
-                className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] active:opacity-60 transition-opacity"
+                className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#9c7a5b] active:opacity-60 transition-opacity"
               >
                 {publishers.every((p) => expanded.has(p.id)) ? "ย่อทั้งหมด" : "ขยายทั้งหมด"}
               </button>
@@ -289,21 +289,21 @@ export default function MyListPage() {
         <div className="flex flex-col gap-[16px] px-[16px] py-[12px]">
           {publishers.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-[16px] py-[48px]">
-              <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[16px] text-center">
+              <p className="font-[family-name:var(--font-sarabun)] text-[#9c7a5b] text-[16px] text-center">
                 ยังไม่มีสำนักพิมพ์ในรายการ
               </p>
               <Link
                 href="/browse"
                 className="flex h-[48px] px-[24px] items-center justify-center rounded-[12px] bg-[#c4855a] shadow-[2px_2px_0px_0px_#e0d0c0]"
               >
-                <span className="font-[family-name:var(--font-prompt)] text-[16px] text-white">
+                <span className="font-[family-name:var(--font-sarabun)] text-[16px] text-white">
                   ค้นหาสำนักพิมพ์
                 </span>
               </Link>
             </div>
           ) : filteredPublishers.length === 0 ? (
             <div className="flex items-center justify-center py-[48px]">
-              <p className="font-[family-name:var(--font-prompt)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
+              <p className="font-[family-name:var(--font-sarabun)] text-[#9c7a5b] text-[15px]">ไม่พบสำนักพิมพ์</p>
             </div>
           ) : (
             filteredPublishers.map((publisher) => (
@@ -332,11 +332,11 @@ export default function MyListPage() {
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
             <div className="flex items-center gap-[8px]">
               {toast.onUndo && <Trash2 size={18} color="#973c00" strokeWidth={2} />}
-              <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
+              <p className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#3d2b1a]">{toast.message}</p>
             </div>
             {toast.onUndo && (
               <button onClick={toast.onUndo}>
-                <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
+                <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#973c00]">นำกลับมา</p>
               </button>
             )}
           </div>

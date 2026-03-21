@@ -132,11 +132,11 @@ export default function MapPage() {
       <div className="shrink-0 px-[16px] pt-[24px] pb-[10px]">
         <BrandHeader />
         <div className="flex items-center justify-between">
-          <p className="font-[family-name:var(--font-prompt)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
+          <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
             ผังงาน
           </p>
           <div className="px-[10px] py-[4px] rounded-full bg-[#f0e4d4]">
-            <p className="font-[family-name:var(--font-prompt)] font-light text-[11px] text-[#973c00]">
+            <p className="font-[family-name:var(--font-sarabun)] font-light text-[11px] text-[#973c00]">
               ผังปี 2569
             </p>
           </div>
@@ -242,10 +242,10 @@ export default function MapPage() {
                   <MapPin size={20} color="#c4855a" strokeWidth={2} />
                 </div>
                 <div className="flex flex-col gap-[2px]">
-                  <p className="font-[family-name:var(--font-prompt)] font-semibold text-[16px] text-[#3d2b1a]">
+                  <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[16px] text-[#3d2b1a]">
                     ยังไม่มีเส้นทางของคุณ
                   </p>
-                  <p className="font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#9c7a5b] leading-snug">
+                  <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#9c7a5b] leading-snug">
                     เพิ่มสำนักพิมพ์ที่ชอบในหน้าค้นหา แล้วกลับมาดูเส้นทางเดินที่นี่
                   </p>
                 </div>
@@ -255,7 +255,7 @@ export default function MapPage() {
                 className="flex items-center justify-center gap-[6px] h-[44px] rounded-[12px] bg-[#c4855a] active:scale-95 transition-all"
               >
                 <Search size={15} color="white" strokeWidth={2} />
-                <span className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-white">
+                <span className="font-[family-name:var(--font-sarabun)] font-medium text-[14px] text-white">
                   ค้นหาสำนักพิมพ์
                 </span>
               </Link>
@@ -268,7 +268,7 @@ export default function MapPage() {
       {loaded && route.length > 0 && (
         <div className="shrink-0 border-t border-[#f0e4d4] bg-[#fafaf8]">
           <div className="flex items-center justify-between px-[16px] pt-[12px] pb-[8px]">
-            <p className="font-[family-name:var(--font-prompt)] font-medium text-[13px] text-[#9c7a5b]">
+            <p className="font-[family-name:var(--font-sarabun)] font-medium text-[13px] text-[#9c7a5b]">
               เส้นทางเดิน · เริ่มจากทางเข้า MRT
             </p>
             <button
@@ -276,7 +276,7 @@ export default function MapPage() {
               className="flex items-center gap-[6px] px-[12px] py-[4px] rounded-full border border-[#c4855a] active:scale-95 transition-all"
             >
               <Navigation size={12} color="#c4855a" strokeWidth={2} />
-              <span className="font-[family-name:var(--font-prompt)] text-[12px] text-[#c4855a] font-medium">
+              <span className="font-[family-name:var(--font-sarabun)] text-[12px] text-[#c4855a] font-medium">
                 {showList ? "ซ่อน" : `${new Set(route.map(s => s.name_th)).size} สำนักพิมพ์`}
               </span>
             </button>
@@ -302,7 +302,7 @@ export default function MapPage() {
                         <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
                         <button
                           onClick={() => handleFocusBooth(booths[0])}
-                          className="flex-1 min-w-0 text-left font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate active:opacity-60 transition-opacity"
+                          className="flex-1 min-w-0 text-left font-[family-name:var(--font-sarabun)] text-[14px] text-[#3d2b1a] truncate active:opacity-60 transition-opacity"
                         >
                           {name_th}
                         </button>

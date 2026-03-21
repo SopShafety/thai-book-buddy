@@ -34,7 +34,7 @@ export default function BookForm({
     <button
       onClick={onSave}
       disabled={!canSave}
-      className={`h-[48px] px-[17px] py-px rounded-[12px] border font-[family-name:var(--font-prompt)] text-[16px] text-white transition-all ${
+      className={`h-[48px] px-[17px] py-px rounded-[12px] border font-[family-name:var(--font-sarabun)] text-[16px] text-white transition-all ${
         canSave ? "bg-[#c4855a] border-[#c4855a]" : "bg-[#e2c9a6] border-[#e2c9a6]"
       } ${layout === "stacked" ? "flex-1" : "shrink-0"}`}
     >
@@ -45,7 +45,7 @@ export default function BookForm({
   const cancelBtn = (
     <button
       onClick={onCancel}
-      className={`h-[48px] px-[17px] py-px rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-prompt)] text-[16px] text-[#c4855a] ${
+      className={`h-[48px] px-[17px] py-px rounded-[12px] border border-[#e2c9a6] bg-[#fafaf8] font-[family-name:var(--font-sarabun)] text-[16px] text-[#c4855a] ${
         layout === "stacked" ? "flex-1" : "shrink-0"
       }`}
     >
@@ -61,7 +61,7 @@ export default function BookForm({
         onChange={(e) => onTitleChange(e.target.value)}
         placeholder="ชื่อหนังสือ"
         autoFocus
-        className="h-[48px] w-full rounded-[16px] border bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] border-[#f0e4d4] transition-colors"
+        className="h-[48px] w-full rounded-[16px] border bg-[#fafaf8] px-[12px] font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] border-[#f0e4d4] transition-colors"
       />
 
       {layout === "inline" ? (
@@ -72,7 +72,7 @@ export default function BookForm({
             value={price}
             onChange={(e) => onPriceChange(e.target.value)}
             placeholder="ราคา (บาท)"
-            className="flex-1 min-w-0 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+            className="flex-1 min-w-0 h-[48px] rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
           />
           <div className="flex shrink-0 gap-[8px]">
             {saveBtn}
@@ -87,7 +87,7 @@ export default function BookForm({
             value={price}
             onChange={(e) => onPriceChange(e.target.value)}
             placeholder="ราคา (บาท)"
-            className="h-[48px] w-full rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
+            className="h-[48px] w-full rounded-[16px] border border-[#f0e4d4] bg-[#fafaf8] px-[12px] font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none focus:border-[#973c00] transition-colors"
           />
           <div className="flex gap-[8px]">
             {saveBtn}
@@ -104,7 +104,7 @@ export default function BookForm({
             className="flex items-center justify-center gap-[4px] w-full active:opacity-60 transition-opacity"
           >
             <Trash2 size={20} color="#df442b" strokeWidth={1.8} />
-            <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#df442b]">ลบรายการ</span>
+            <span className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#df442b]">ลบรายการ</span>
           </button>
         </>
       )}

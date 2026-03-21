@@ -25,7 +25,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
       {/* Info */}
       <div className="flex-1 min-w-0 flex flex-col gap-[16px]">
         <div className="flex flex-col gap-[4px]">
-          <p className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#3d2b1a] leading-snug">
+          <p className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#3d2b1a] leading-snug">
             {publisher.name_th}
           </p>
           {publisher.name_en && publisher.name_en !== publisher.name_th && (
@@ -36,7 +36,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         </div>
         {category && (
           <div className="inline-flex self-start items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
-            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b] whitespace-nowrap">
+            <span className="font-[family-name:var(--font-sarabun)] font-light text-[12px] text-[#9c7a5b] whitespace-nowrap">
               {category}
             </span>
           </div>
@@ -51,14 +51,14 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         {selected ? (
           <>
             <Check size={18} color="#9c7a5b" strokeWidth={2} />
-            <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#9c7a5b]">
+            <span className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#9c7a5b]">
               เพิ่มแล้ว
             </span>
           </>
         ) : (
           <>
             <Plus size={18} color="#c4855a" strokeWidth={2} />
-            <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#c4855a]">
+            <span className="font-[family-name:var(--font-sarabun)] font-medium text-[16px] text-[#c4855a]">
               เพิ่ม
             </span>
           </>

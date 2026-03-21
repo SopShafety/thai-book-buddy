@@ -41,7 +41,7 @@ export default function SearchBar({ onSearch, placeholder = "ค้นหา..."
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
+        className="flex-1 bg-transparent font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
       />
       {value && (
         <button onClick={handleClear} className="shrink-0 text-[#746d67]">

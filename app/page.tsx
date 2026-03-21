@@ -26,7 +26,7 @@ export default function Home() {
           <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-[40px] text-[#8fad7a] whitespace-nowrap">
             BookFair Buddy
           </p>
-          <p className="font-[family-name:var(--font-prompt)] font-light text-[24px] text-[#973c00] whitespace-nowrap">
+          <p className="font-[family-name:var(--font-sarabun)] font-light text-[24px] text-[#973c00] whitespace-nowrap">
             เพื่อนช่วยป้ายยาหนังสือ
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function Home() {
         )}
         {(liffError || authError) && (
           <div className="mb-[12px] px-[16px] py-[12px] rounded-[12px] bg-red-50 border border-red-200">
-            <p className="font-[family-name:var(--font-prompt)] font-light text-[13px] text-red-600 text-center leading-relaxed">
+            <p className="font-[family-name:var(--font-sarabun)] font-light text-[13px] text-red-600 text-center leading-relaxed">
               {liffError ?? authError}
             </p>
           </div>
