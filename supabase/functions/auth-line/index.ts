@@ -68,8 +68,6 @@ Deno.serve(async (req: Request) => {
     const lineUserId: string = lineProfile.userId;
     const email = `line_${lineUserId}@line-auth.local`;
     const display_name: string | null = lineProfile.displayName ?? null;
-    const picture_url: string | null = lineProfile.pictureUrl ?? null;
-
     // Step 2: Create Supabase admin client
     // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are auto-injected by Supabase
     const adminClient = createClient(
@@ -82,7 +80,7 @@ Deno.serve(async (req: Request) => {
     await adminClient.auth.admin.createUser({
       email,
       email_confirm: true,
-      user_metadata: { line_user_id: lineUserId, display_name, picture_url },
+      user_metadata: { line_user_id: lineUserId, display_name },
     });
 
     // Step 4: Generate a one-time sign-in token for this user
@@ -104,7 +102,6 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         token_hash: linkData.properties.hashed_token,
         display_name,
-        picture_url,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

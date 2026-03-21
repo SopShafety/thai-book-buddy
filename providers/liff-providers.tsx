@@ -49,7 +49,7 @@ async function signInWithLINE(
       // Re-create profile row if it was deleted
       const meta = session.user.user_metadata ?? {};
       supabase.from("profiles").upsert(
-        { id: session.user.id, display_name: meta.display_name ?? null, picture_url: meta.picture_url ?? null },
+        { id: session.user.id, display_name: meta.display_name ?? null },
         { onConflict: "id", ignoreDuplicates: false }
       ).then();
     } else {
@@ -96,7 +96,7 @@ async function signInWithLINE(
     };
   }
 
-  const { token_hash, display_name, picture_url } = edgeData;
+  const { token_hash, display_name } = edgeData;
 
   // Step 2: Exchange token hash for Supabase session
   const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: "email" });
@@ -109,7 +109,7 @@ async function signInWithLINE(
 
   // Step 3: Upsert profile + optionally check onboarding — run in parallel
   const upsertPromise = supabase.from("profiles").upsert(
-    { id: data.user.id, display_name, picture_url },
+    { id: data.user.id, display_name },
     { onConflict: "id", ignoreDuplicates: false }
   );
 
