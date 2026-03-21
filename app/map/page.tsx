@@ -66,7 +66,7 @@ export default function MapPage() {
     activeTimer.current = setTimeout(() => setActiveBooth(null), 3200);
 
     const { clientWidth: vw, clientHeight: vh } = mapContainerRef.current;
-    const scale = 0.8;
+    const scale = 0.4;
     const tx = vw / 2 - stop.pinX * scale;
     const ty = vh / 2 - stop.pinY * scale;
     transformRef.current.setTransform(tx, ty, scale, 400, "easeOut");
