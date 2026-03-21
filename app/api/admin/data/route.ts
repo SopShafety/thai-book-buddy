@@ -20,13 +20,17 @@ export async function GET(req: NextRequest) {
     { data: selections },
     { data: books },
     { data: sessions },
-    { data: profiles },
+    { count: uniqueUsers },
+    { count: totalSaves },
+    { count: totalBooks },
   ] = await Promise.all([
-    supabase.from("publishers").select("id, name_th, name_en"),
-    supabase.from("user_selections").select("publisher_id, user_id"),
-    supabase.from("user_books").select("publisher_id"),
-    supabase.from("sessions").select("user_id, created_at"),
-    supabase.from("profiles").select("id"),
+    supabase.from("publishers").select("id, name_th, name_en").limit(5000),
+    supabase.from("user_selections").select("publisher_id, user_id").limit(50000),
+    supabase.from("user_books").select("publisher_id").limit(50000),
+    supabase.from("sessions").select("user_id, created_at").limit(50000),
+    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("user_selections").select("*", { count: "exact", head: true }),
+    supabase.from("user_books").select("*", { count: "exact", head: true }),
   ]);
 
   // Unique savers per publisher
@@ -71,9 +75,9 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const totals = {
-    unique_users: (profiles ?? []).length,
-    total_saves: selections?.length ?? 0,
-    total_books: books?.length ?? 0,
+    unique_users: uniqueUsers ?? 0,
+    total_saves: totalSaves ?? 0,
+    total_books: totalBooks ?? 0,
   };
 
   return NextResponse.json({ publishers: publisherStats, dau, totals });

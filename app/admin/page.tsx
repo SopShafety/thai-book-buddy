@@ -56,6 +56,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("saves");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [dauFrom, setDauFrom] = useState("");
+  const [dauTo, setDauTo] = useState("");
   const [detail, setDetail] = useState<(PublisherDetail & { id: string }) | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -157,7 +159,28 @@ export default function AdminPage() {
     );
   }
 
-  const dauMax = data ? Math.max(...data.dau.map((d) => d.count), 1) : 1;
+  const filteredDau = data
+    ? data.dau.filter((d) => {
+        if (dauFrom && d.date < dauFrom) return false;
+        if (dauTo && d.date > dauTo) return false;
+        return true;
+      })
+    : [];
+  const dauMax = filteredDau.length > 0 ? Math.max(...filteredDau.map((d) => d.count), 1) : 1;
+
+  function toLocalDate(daysAgo: number) {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  }
+
+  function applyDauPreset(preset: "24h" | "7d" | "30d" | "all") {
+    const today = toLocalDate(0);
+    if (preset === "24h") { setDauFrom(today); setDauTo(today); }
+    else if (preset === "7d") { setDauFrom(toLocalDate(6)); setDauTo(today); }
+    else if (preset === "30d") { setDauFrom(toLocalDate(29)); setDauTo(today); }
+    else { setDauFrom(""); setDauTo(""); }
+  }
 
   // ── Login screen ──────────────────────────────────────────────────────────
   if (!authed) {
@@ -254,28 +277,57 @@ export default function AdminPage() {
         {/* DAU chart */}
         {data && data.dau.length > 0 && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-8">
-            <h2 className="text-sm font-semibold text-gray-500 mb-4">
-              Daily Active Users
-            </h2>
-            <div className="flex items-end gap-1.5 h-32">
-              {data.dau.map((d) => (
-                <div
-                  key={d.date}
-                  className="flex flex-col items-center gap-1 flex-1 min-w-0"
-                >
-                  <span className="text-[10px] text-gray-400">{d.count}</span>
-                  <div
-                    className="w-full bg-[#c4855a] rounded-t"
-                    style={{
-                      height: `${Math.max(4, Math.round((d.count / dauMax) * 80))}px`,
-                    }}
-                  />
-                  <span className="text-[10px] text-gray-400 truncate w-full text-center">
-                    {formatDate(d.date)}
-                  </span>
-                </div>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h2 className="text-sm font-semibold text-gray-500">Daily Active Users</h2>
+              <div className="flex flex-wrap items-center gap-2">
+                {(["24h", "7d", "30d", "all"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => applyDauPreset(p)}
+                    className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                  >
+                    {p === "24h" ? "24 ชม." : p === "7d" ? "7 วัน" : p === "30d" ? "1 เดือน" : "ทั้งหมด"}
+                  </button>
+                ))}
+                <span className="text-xs text-gray-300">|</span>
+                <input
+                  type="date"
+                  value={dauFrom}
+                  onChange={(e) => setDauFrom(e.target.value)}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
+                />
+                <span className="text-xs text-gray-400">–</span>
+                <input
+                  type="date"
+                  value={dauTo}
+                  onChange={(e) => setDauTo(e.target.value)}
+                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
+                />
+              </div>
             </div>
+            {filteredDau.length > 0 ? (
+              <div className="flex items-end gap-1.5 h-32">
+                {filteredDau.map((d) => (
+                  <div
+                    key={d.date}
+                    className="flex flex-col items-center gap-1 flex-1 min-w-0"
+                  >
+                    <span className="text-[10px] text-gray-400">{d.count}</span>
+                    <div
+                      className="w-full bg-[#c4855a] rounded-t"
+                      style={{
+                        height: `${Math.max(4, Math.round((d.count / dauMax) * 80))}px`,
+                      }}
+                    />
+                    <span className="text-[10px] text-gray-400 truncate w-full text-center">
+                      {formatDate(d.date)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-8">ไม่มีข้อมูลในช่วงเวลานี้</p>
+            )}
           </div>
         )}
 
