@@ -2047,7 +2047,7 @@ do $$ declare pub_id uuid; begin
     values (pub_id, 'B', 'B24');
 
   insert into publishers (name_th, name_en, category)
-    values ('เอสเอ็มเอ็ม พลัส', 'SMM PLUS', array['โซนหนังสือการ์ตูนและวัยรุ่น'])
+    values ('สยาม อินเตอร์ คอมิกส์', 'Siam Inter Comics', array['โซนหนังสือการ์ตูนและวัยรุ่น'])
     returning id into pub_id;
   insert into booths (publisher_id, zone, booth_number)
     values (pub_id, 'N', 'N50');
