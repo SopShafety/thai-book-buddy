@@ -36,7 +36,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
         </div>
         {category && (
           <div className="inline-flex self-start items-center px-[12px] py-[4px] rounded-[20px] bg-[#fff8ee]">
-            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b]">
+            <span className="font-[family-name:var(--font-prompt)] font-light text-[12px] text-[#9c7a5b] whitespace-nowrap">
               {category}
             </span>
           </div>
