@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, Bookmark, Check } from "lucide-react";
+import { Bookmark, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../utils/supabase";
 import { useLIFF } from "../../providers/liff-providers";
@@ -9,6 +9,7 @@ import BottomNav from "../../components/BottomNav";
 import BrandHeader from "../../components/BrandHeader";
 import LoadingScreen from "../../components/LoadingScreen";
 import ErrorScreen from "../../components/ErrorScreen";
+import SearchBar from "../../components/SearchBar";
 import type { Publisher } from "../../types";
 
 export default function BrowsePage() {
@@ -18,10 +19,7 @@ export default function BrowsePage() {
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [searchFocused, setSearchFocused] = useState(false);
   const [activeZone, setActiveZone] = useState<string>("ทั้งหมด");
   const [pubsLoaded, setPubsLoaded] = useState(false);
   const [pubsError, setPubsError] = useState(false);
@@ -36,7 +34,6 @@ export default function BrowsePage() {
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
   }, []);
 
@@ -143,16 +140,6 @@ export default function BrowsePage() {
     [publishers]
   );
 
-  const handleToggle = useCallback(async (publisherId: string) => {
-    if (!userId || togglingRef.current.has(publisherId)) return;
-    const isSelected = selectedIds.has(publisherId);
-    if (isSelected && (bookCounts.get(publisherId) ?? 0) > 0) {
-      setConfirmPublisherId(publisherId);
-      return;
-    }
-    await doRemoveOrAdd(publisherId, isSelected);
-  }, [userId, selectedIds, bookCounts]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const doRemoveOrAdd = useCallback(async (publisherId: string, isSelected: boolean) => {
     togglingRef.current.add(publisherId);
     setSelectedIds((prev) => {
@@ -173,7 +160,17 @@ export default function BrowsePage() {
       await supabase.from("user_selections").insert({ user_id: userId!, publisher_id: publisherId });
     }
     togglingRef.current.delete(publisherId);
-  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId]); // toastTimer is a stable ref — intentionally not listed
+
+  const handleToggle = useCallback(async (publisherId: string) => {
+    if (!userId || togglingRef.current.has(publisherId)) return;
+    const isSelected = selectedIds.has(publisherId);
+    if (isSelected && (bookCounts.get(publisherId) ?? 0) > 0) {
+      setConfirmPublisherId(publisherId);
+      return;
+    }
+    await doRemoveOrAdd(publisherId, isSelected);
+  }, [userId, selectedIds, bookCounts, doRemoveOrAdd]);
 
   if (!pubsLoaded) return <LoadingScreen />;
   if (pubsError) return <ErrorScreen onRetry={() => { setPubsError(false); setPubsLoaded(false); setPubsRetryKey((k) => k + 1); }} />;
@@ -197,29 +194,7 @@ export default function BrowsePage() {
         <div className="sticky top-0 z-10 bg-[#fafaf8]">
           {/* Search */}
           <div className="px-[16px] py-[12px]">
-            <div className={`flex items-center gap-[9px] h-[48px] px-[12px] rounded-[16px] bg-[#fafaf8] border transition-colors ${
-              searchFocused ? "border-[#973c00]" : "border-[#f0e4d4]"
-            }`}>
-              <Search size={20} color={searchFocused ? "#973c00" : "#746d67"} strokeWidth={1.8} className="shrink-0" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-                  searchDebounceRef.current = setTimeout(() => setDebouncedSearch(e.target.value), 200);
-                }}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-                placeholder="ค้นหาสำนักพิมพ์..."
-                className="flex-1 bg-transparent font-[family-name:var(--font-prompt)] font-light text-[14px] text-[#3d2b1a] placeholder-[#746d67] outline-none"
-              />
-              {search && (
-                <button onClick={() => { setSearch(""); setDebouncedSearch(""); }} className="shrink-0 text-[#746d67]">
-                  <X size={16} strokeWidth={2} />
-                </button>
-              )}
-            </div>
+            <SearchBar onSearch={setDebouncedSearch} placeholder="ค้นหาสำนักพิมพ์..." />
           </div>
 
           {/* Category filter */}

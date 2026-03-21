@@ -10,3 +10,11 @@ export interface Publisher {
   category?: string[];
   booths: Booth[];
 }
+
+export interface Book {
+  id: string;
+  publisher_id: string;
+  title: string;
+  price: number | null;
+  is_purchased: boolean;
+}

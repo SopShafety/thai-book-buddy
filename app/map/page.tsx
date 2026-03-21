@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Navigation, MapPin, Search } from "lucide-react";
 import Link from "next/link";
@@ -45,6 +45,8 @@ export default function MapPage() {
   const [showList, setShowList] = useState(true);
   const [loaded, setLoaded] = useState(false);
 
+  const waypoints = useMemo(() => buildWaypoints(route), [route]);
+
   useEffect(() => {
     async function load() {
       // Preview mode: bypass LIFF, load mock booths spread across the map
@@ -57,6 +59,8 @@ export default function MapPage() {
           { booth: "D30", name_th: "สำนักพิมพ์ จ" },
           { booth: "K32", name_th: "สำนักพิมพ์ ฉ" },
           { booth: "R28", name_th: "สำนักพิมพ์ ช" },
+          { booth: "Q01", name_th: "สำนักพิมพ์ ฌ" },
+          { booth: "M11", name_th: "สำนักพิมพ์ ญ" },
           { booth: "B22", name_th: "สำนักพิมพ์ ซ" },
           { booth: "H20", name_th: "สำนักพิมพ์ ณ" },
           { booth: "N18", name_th: "สำนักพิมพ์ ด" },
@@ -161,21 +165,17 @@ export default function MapPage() {
               />
 
               {/* Route line */}
-              {loaded && route.length > 0 && (() => {
-                const waypoints = buildWaypoints(route);
-                const waypointStr = waypoints.map((p) => `${p.x},${p.y}`).join(" ");
-                return (
-                  <polyline
-                    points={waypointStr}
-                    fill="none"
-                    stroke="#c4855a"
-                    strokeWidth={6}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    strokeOpacity={0.95}
-                  />
-                );
-              })()}
+              {loaded && waypoints.length > 0 && (
+                <polyline
+                  points={waypoints.map((p) => `${p.x},${p.y}`).join(" ")}
+                  fill="none"
+                  stroke="#c4855a"
+                  strokeWidth={6}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeOpacity={0.95}
+                />
+              )}
 
               {/* Booth outlines for selected booths */}
               {loaded && route.map((stop) => (
@@ -244,21 +244,24 @@ export default function MapPage() {
             <div className="max-h-[32vh] overflow-y-auto">
               <div className="flex flex-col px-[16px] pb-[8px] gap-[10px]">
                 {(() => {
-                  // Group stops by publisher name, preserving route order
-                  const groups: { name_th: string; booths: string[] }[] = [];
+                  // Group stops by publisher name (O(n) via Map), preserving route order
+                  const groupMap = new Map<string, string[]>();
+                  const order: string[] = [];
                   for (const stop of route) {
-                    const existing = groups.find(g => g.name_th === stop.name_th);
-                    if (existing) existing.booths.push(stop.booth);
-                    else groups.push({ name_th: stop.name_th, booths: [stop.booth] });
+                    if (!groupMap.has(stop.name_th)) {
+                      groupMap.set(stop.name_th, []);
+                      order.push(stop.name_th);
+                    }
+                    groupMap.get(stop.name_th)!.push(stop.booth);
                   }
-                  return groups.map((group, i) => (
+                  return order.map((name_th, i) => (
                     <div key={`list-${i}`} className="flex items-center gap-[12px]">
                       <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
                       <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
-                        {group.name_th}
+                        {name_th}
                       </p>
                       <div className="flex gap-[4px]">
-                        {group.booths.map(booth => (
+                        {groupMap.get(name_th)!.map(booth => (
                           <div key={booth} className="shrink-0 px-[8px] py-[2px] rounded-full bg-[#fff8ee] border border-[#f0e4d4]">
                             <p className="font-[family-name:var(--font-jakarta)] font-medium text-[12px] text-[#9c7a5b]">
                               {booth}
