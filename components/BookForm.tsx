@@ -13,7 +13,7 @@ interface Props {
   /** "inline" — price + buttons on same row (add flow)
    *  "stacked" — price full-width, buttons below (edit flow) */
   layout?: "inline" | "stacked";
-  formRef?: React.RefObject<HTMLDivElement>;
+  formRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 export default function BookForm({
