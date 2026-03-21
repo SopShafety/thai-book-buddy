@@ -38,11 +38,28 @@ export default function BrowsePage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!authLoading && !isLoggedIn) router.replace("/");
-  }, [authLoading, isLoggedIn, router]);
+  const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
 
   useEffect(() => {
+    if (isPreview) return;
+    if (!authLoading && !isLoggedIn) router.replace("/");
+  }, [authLoading, isLoggedIn, router, isPreview]);
+
+  useEffect(() => {
+    if (isPreview) {
+      setPublishers([
+        { id: "mock-1", name_th: "สำนักพิมพ์แสงดาว", name_en: "Sangdao Publishing", booths: [{ zone: "A", booth_number: "A01" }] },
+        { id: "mock-2", name_th: "นานมีบุ๊คส์", name_en: "Nanmeebooks", booths: [{ zone: "B", booth_number: "B12" }] },
+        { id: "mock-3", name_th: "อมรินทร์", name_en: "Amarin", booths: [{ zone: "C", booth_number: "C05" }] },
+        { id: "mock-4", name_th: "มติชน", name_en: "Matichon", booths: [{ zone: "D", booth_number: "D08" }] },
+        { id: "mock-5", name_th: "บ้านพระอาทิตย์", name_en: "Baan Phra Arthit", booths: [{ zone: "E", booth_number: "E03" }] },
+      ]);
+      setUserId("preview-user");
+      setPubsLoaded(true);
+      setUserLoaded(true);
+      return;
+    }
+
     const CACHE_KEY = "publishers_cache";
     const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
@@ -80,7 +97,7 @@ export default function BrowsePage() {
   }, [pubsRetryKey]);
 
   useEffect(() => {
-    if (!isLoggedIn) return;
+    if (isPreview || !isLoggedIn) return;
     async function loadUserData() {
       try {
         const supabase = getSupabase();
@@ -271,12 +288,10 @@ export default function BrowsePage() {
               <Check size={12} color="white" strokeWidth={3} />
             </div>
             <p className="font-[family-name:var(--font-prompt)] text-[16px] text-[#3d2b1a] flex-1">{toast}</p>
-            <Link
-              href="/my-list"
-              onClick={() => setToast(null)}
-              className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00] shrink-0"
-            >
-              ดูรายการ
+            <Link href="/my-list" onClick={() => setToast(null)} className="shrink-0">
+              <span className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00]">
+                ดูรายการ
+              </span>
             </Link>
           </div>
         </div>
