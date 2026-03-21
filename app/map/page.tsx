@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from "react-zoom-pan-pinch";
 import { Navigation, MapPin, Search } from "lucide-react";
 import Link from "next/link";
 import BrandHeader from "../../components/BrandHeader";
@@ -44,8 +44,33 @@ export default function MapPage() {
   const [route, setRoute] = useState<RouteStop[]>([]);
   const [showList, setShowList] = useState(true);
   const [loaded, setLoaded] = useState(false);
+  const [activeBooth, setActiveBooth] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState(0);
+  const activeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transformRef = useRef<ReactZoomPanPinchRef>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const waypoints = useMemo(() => buildWaypoints(route), [route]);
+
+  useEffect(() => {
+    return () => { if (activeTimer.current) clearTimeout(activeTimer.current); };
+  }, []);
+
+  function handleFocusBooth(boothNum: string) {
+    const stop = route.find((s) => s.booth === boothNum);
+    if (!stop || !transformRef.current || !mapContainerRef.current) return;
+
+    if (activeTimer.current) clearTimeout(activeTimer.current);
+    setActiveBooth(boothNum);
+    setActiveKey((k) => k + 1);
+    activeTimer.current = setTimeout(() => setActiveBooth(null), 3200);
+
+    const { clientWidth: vw, clientHeight: vh } = mapContainerRef.current;
+    const scale = 0.8;
+    const tx = vw / 2 - stop.pinX * scale;
+    const ty = vh / 2 - stop.pinY * scale;
+    transformRef.current.setTransform(tx, ty, scale, 400, "easeOut");
+  }
 
   useEffect(() => {
     async function load() {
@@ -119,8 +144,9 @@ export default function MapPage() {
       </div>
 
       {/* Map */}
-      <div className="relative flex-1 overflow-hidden bg-[#e0dbd4]">
+      <div ref={mapContainerRef} className="relative flex-1 overflow-hidden bg-[#e0dbd4]">
         <TransformWrapper
+          ref={transformRef}
           initialScale={0.15}
           minScale={0.1}
           maxScale={4}
@@ -152,7 +178,6 @@ export default function MapPage() {
                     />
                   ))}
                 </mask>
-
 
               </defs>
 
@@ -188,6 +213,22 @@ export default function MapPage() {
                   strokeLinejoin="round"
                 />
               ))}
+
+              {/* Flash polygon for focused booth */}
+              {activeBooth && (() => {
+                const stop = route.find((s) => s.booth === activeBooth);
+                if (!stop) return null;
+                return (
+                  <polygon
+                    key={`flash-${activeKey}`}
+                    points={stop.polygon.map(([x, y]) => `${x},${y}`).join(" ")}
+                    fill="#fff8ee"
+                    fillOpacity={0}
+                    stroke="none"
+                    style={{ animation: 'booth-flash 1.5s ease-in-out 2 forwards' }}
+                  />
+                );
+              })()}
             </svg>
           </TransformComponent>
         </TransformWrapper>
@@ -254,23 +295,37 @@ export default function MapPage() {
                     }
                     groupMap.get(stop.name_th)!.push(stop.booth);
                   }
-                  return order.map((name_th, i) => (
-                    <div key={`list-${i}`} className="flex items-center gap-[12px]">
-                      <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
-                      <p className="flex-1 min-w-0 font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate">
-                        {name_th}
-                      </p>
-                      <div className="flex gap-[4px]">
-                        {groupMap.get(name_th)!.map(booth => (
-                          <div key={booth} className="shrink-0 px-[8px] py-[2px] rounded-full bg-[#fff8ee] border border-[#f0e4d4]">
-                            <p className="font-[family-name:var(--font-jakarta)] font-medium text-[12px] text-[#9c7a5b]">
-                              {booth}
-                            </p>
-                          </div>
-                        ))}
+                  return order.map((name_th, i) => {
+                    const booths = groupMap.get(name_th)!;
+                    return (
+                      <div key={`list-${i}`} className="flex items-center gap-[12px]">
+                        <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
+                        <button
+                          onClick={() => handleFocusBooth(booths[0])}
+                          className="flex-1 min-w-0 text-left font-[family-name:var(--font-prompt)] text-[14px] text-[#3d2b1a] truncate active:opacity-60 transition-opacity"
+                        >
+                          {name_th}
+                        </button>
+                        <div className="flex gap-[4px]">
+                          {booths.map(booth => (
+                            <button
+                              key={booth}
+                              onClick={() => handleFocusBooth(booth)}
+                              className={`shrink-0 px-[8px] py-[2px] rounded-full border transition-all active:scale-95 ${
+                                activeBooth === booth
+                                  ? "bg-[#c4855a] border-[#c4855a]"
+                                  : "bg-[#fff8ee] border-[#f0e4d4]"
+                              }`}
+                            >
+                              <p className={`font-[family-name:var(--font-jakarta)] font-medium text-[12px] ${activeBooth === booth ? "text-white" : "text-[#9c7a5b]"}`}>
+                                {booth}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ));
+                    );
+                  });
                 })()}
               </div>
             </div>

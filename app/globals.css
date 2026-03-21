@@ -31,3 +31,9 @@ input, select, textarea { font-size: 16px; }
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
   40%           { transform: translateY(-6px); opacity: 1; }
 }
+
+@keyframes booth-flash {
+  0%, 100% { fill-opacity: 0; }
+  50%       { fill-opacity: 0.55; }
+}
+
