@@ -219,10 +219,12 @@ export default function PublisherListItem({
                         <div className="flex items-center gap-[8px] shrink-0 ml-[8px]">
                           {book.price != null && (
                             <p className={`font-[family-name:var(--font-jakarta)] text-[16px] ${book.is_purchased ? "line-through text-[#a6a09b]" : "text-[#6a7282]"}`}>
-                              ฿{book.price.toLocaleString()}
+                              {book.price.toLocaleString()}
                             </p>
                           )}
-                          {!book.is_purchased && (
+                          {book.is_purchased ? (
+                            <div className="shrink-0 size-[16px]" />
+                          ) : (
                             <button
                               onClick={() => { setEditingBookId(book.id); setEditPrice(book.price != null ? String(book.price) : ""); setEditTitle(book.title); }}
                               className="text-[#9c7a5b] active:opacity-60 transition-opacity"
@@ -244,22 +246,27 @@ export default function PublisherListItem({
                         <span className="font-[family-name:var(--font-jakarta)] font-semibold text-[16px] text-[#6a7282]">
                           {pubBooks.reduce((sum, b) => sum + (b.price ?? 0), 0).toLocaleString()}
                         </span>
+                        <div className="shrink-0 size-[16px]" />
                       </div>
+                      <div className="h-px bg-[#f0e4d4]" />
                     </div>
                   )}
 
                   {/* Note display */}
-                  {note && (
-                    <div className="flex gap-[8px] items-start">
-                      <p className="flex-1 font-[family-name:var(--font-jakarta)] text-[12px] text-[#6a7282] min-w-0">
+                  {note && !isAddingNote && (
+                    <div className="flex flex-col gap-[4px]">
+                      <div className="flex items-start justify-between">
+                        <p className="font-[family-name:var(--font-jakarta)] font-medium text-[16px] text-[#6a7282]">โน้ต</p>
+                        <button
+                          onClick={() => { setIsAddingNote(true); setNoteInput(note); }}
+                          className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
+                        >
+                          <Pencil size={16} strokeWidth={2} />
+                        </button>
+                      </div>
+                      <p className="font-[family-name:var(--font-jakarta)] text-[16px] text-[#6a7282]">
                         {note}
                       </p>
-                      <button
-                        onClick={() => { setIsAddingNote(true); setNoteInput(note); }}
-                        className="shrink-0 text-[#9c7a5b] active:opacity-60 transition-opacity"
-                      >
-                        <Pencil size={16} strokeWidth={2} />
-                      </button>
                     </div>
                   )}
                 </div>
@@ -300,7 +307,12 @@ export default function PublisherListItem({
               {/* Action buttons row */}
               {!isAddingNote && (
                 <div className="flex items-center justify-between">
-                  {!note && (
+                  {note ? (
+                    <div className="flex flex-1 items-center justify-center gap-[4px]">
+                      <NotebookPen size={20} color="#a6a09b" strokeWidth={1.8} />
+                      <span className="font-[family-name:var(--font-prompt)] text-[16px] text-[#a6a09b]">เพิ่มโน้ตแล้ว</span>
+                    </div>
+                  ) : (
                     <button
                       onClick={() => { setIsAddingNote(true); setNoteInput(""); }}
                       className="flex flex-1 items-center justify-center gap-[4px]"
