@@ -274,7 +274,7 @@ export default function BrowsePage() {
             <Link
               href="/my-list"
               onClick={() => setToast(null)}
-              className="font-[family-name:var(--font-prompt)] font-medium text-[14px] text-[#c4855a] shrink-0"
+              className="font-[family-name:var(--font-prompt)] font-medium text-[16px] text-[#973c00] shrink-0"
             >
               ดูรายการ
             </Link>
