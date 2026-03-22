@@ -205,12 +205,6 @@ export default function BrowsePage() {
         {/* Header — scrolls away */}
         <div className="px-[16px] pt-[24px] pb-[12px]">
           <BrandHeader />
-          <p className="font-[family-name:var(--font-sarabun)] font-semibold text-[32px] text-[#3d2b1a] leading-tight">
-            รายชื่อผู้ออกบูธ
-          </p>
-          <p className="font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#6a7282] mt-[2px]">
-            {totalBooths} บูธ
-          </p>
         </div>
 
         {/* Sticky search + filter */}
