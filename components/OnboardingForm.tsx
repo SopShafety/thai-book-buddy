@@ -48,7 +48,7 @@ export default function OnboardingForm() {
   }
 
   return (
-    <div className="absolute inset-0 bg-[#fafaf8] flex flex-col px-[16px] pt-[24px] pb-[32px] overflow-y-auto">
+    <div className="absolute inset-0 bg-[#fafaf8] flex flex-col px-[16px] pt-[24px] overflow-y-auto" style={{ paddingBottom: "calc(32px + var(--sab))" }}>
       <BrandHeader />
 
       <div className="mt-[24px] mb-[32px]">

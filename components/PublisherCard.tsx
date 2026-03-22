@@ -44,10 +44,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
       </div>
 
       {/* Add / Added button */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onToggle(publisher.id); }}
-        className="shrink-0 flex items-center gap-[4px] active:scale-90 transition-all"
-      >
+      <div className="shrink-0 flex items-center gap-[4px]">
         {selected ? (
           <>
             <Check size={18} color="#9c7a5b" strokeWidth={2} />
@@ -63,7 +60,7 @@ export default function PublisherCard({ publisher, selected, onToggle }: Props) 
             </span>
           </>
         )}
-      </button>
+      </div>
     </div>
   );
 }

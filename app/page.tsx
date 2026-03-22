@@ -33,7 +33,7 @@ export default function Home() {
       </div>
 
       {/* Button */}
-      <div className="shrink-0 px-[16px] pt-[12px] pb-[32px]">
+      <div className="shrink-0 px-[16px] pt-[12px]" style={{ paddingBottom: "calc(32px + var(--sab))" }}>
         {isLoading && (
           <div className="flex h-[56px] w-full items-center justify-center rounded-[16px] bg-[#c4855a]/20">
             <p className="font-[family-name:var(--font-jakarta)] font-medium text-[#c4855a] text-[20px] whitespace-nowrap">Loading...</p>
