@@ -28,6 +28,7 @@ export default function MyListPage() {
   const [toast, setToast] = useState<{ message: string; onUndo: (() => void) | null } | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
+  const toastRef = useRef<HTMLDivElement>(null);
   const [notesByPublisher, setNotesByPublisher] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
@@ -37,6 +38,20 @@ export default function MyListPage() {
       if (pendingAction.current) { pendingAction.current(); pendingAction.current = null; }
     };
   }, []);
+
+  useEffect(() => {
+    if (!toast) return;
+    function handleTap(e: MouseEvent | TouchEvent) {
+      if (toastRef.current?.contains(e.target as Node)) return;
+      commitPending();
+    }
+    document.addEventListener("mousedown", handleTap);
+    document.addEventListener("touchstart", handleTap);
+    return () => {
+      document.removeEventListener("mousedown", handleTap);
+      document.removeEventListener("touchstart", handleTap);
+    };
+  }, [toast]);
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) router.replace("/");
@@ -328,7 +343,7 @@ export default function MyListPage() {
       </div>
 
       {toast && (
-        <div className="fixed left-[16px] right-[16px] bottom-[84px] z-20 animate-[toast-in_0.25s_ease-out]">
+        <div ref={toastRef} className="fixed left-[16px] right-[16px] bottom-[84px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
             <div className="flex items-center gap-[8px]">
               {toast.onUndo && <Trash2 size={18} color="#973c00" strokeWidth={2} />}
