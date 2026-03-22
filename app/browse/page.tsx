@@ -173,8 +173,12 @@ export default function BrowsePage() {
     }
     const supabase = getSupabase();
     if (isSelected) {
-      await supabase.from("user_selections").delete()
-        .eq("user_id", userId!).eq("publisher_id", publisherId);
+      await Promise.all([
+        supabase.from("user_selections").delete()
+          .eq("user_id", userId!).eq("publisher_id", publisherId),
+        supabase.from("user_books").delete()
+          .eq("user_id", userId!).eq("publisher_id", publisherId),
+      ]);
     } else {
       await supabase.from("user_selections").insert({ user_id: userId!, publisher_id: publisherId });
     }
@@ -283,7 +287,7 @@ export default function BrowsePage() {
       </div>
 
       {toast && (
-        <div className="absolute left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]" style={{ bottom: "calc(84px + var(--sab))" }}>
+        <div className="fixed left-[16px] right-[16px] bottom-[84px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center gap-[12px] h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
             <div className="shrink-0 size-[20px] rounded-full bg-[#c4855a] flex items-center justify-center">
               <Check size={12} color="white" strokeWidth={3} />

@@ -328,7 +328,7 @@ export default function MyListPage() {
       </div>
 
       {toast && (
-        <div className="absolute left-[16px] right-[16px] z-20 animate-[toast-in_0.25s_ease-out]" style={{ bottom: "calc(84px + var(--sab))" }}>
+        <div className="fixed left-[16px] right-[16px] bottom-[84px] z-20 animate-[toast-in_0.25s_ease-out]">
           <div className="flex items-center justify-between h-[61px] px-[16px] bg-[#f0e4d4] border border-[#c4855a] rounded-[8px]">
             <div className="flex items-center gap-[8px]">
               {toast.onUndo && <Trash2 size={18} color="#973c00" strokeWidth={2} />}
