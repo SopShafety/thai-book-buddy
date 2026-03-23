@@ -432,7 +432,10 @@ export default function AdminPage() {
                     <div key={p.id} className="relative flex items-center gap-3 py-2 px-3 rounded-lg overflow-hidden">
                       <div className="absolute inset-0 bg-[#fff8ee] rounded-lg" style={{ width: `${pct}%` }} />
                       <span className="relative text-xs text-gray-300 w-4 shrink-0">{i + 1}</span>
-                      <span className="relative text-sm text-gray-700 font-medium flex-1 truncate">{p.name_th}</span>
+                      <div className="relative flex-1 min-w-0">
+                        <p className="text-sm text-gray-700 font-medium truncate">{p.name_th}</p>
+                        {p.name_en && <p className="text-xs text-gray-400 truncate">{p.name_en}</p>}
+                      </div>
                       <span className="relative text-sm font-semibold text-[#c4855a] shrink-0">{p.saves}</span>
                     </div>
                   );
