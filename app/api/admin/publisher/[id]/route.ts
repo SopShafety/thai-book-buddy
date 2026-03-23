@@ -19,17 +19,14 @@ export async function GET(
   const { id: publisherId } = await context.params;
   const supabase = adminClient();
 
-  const [{ data: publisher }, { data: selections }, { data: books }] =
+  const [{ data: publisher }, { data: demoRows }, { data: books }] =
     await Promise.all([
       supabase
         .from("publishers")
         .select("id, name_th, name_en")
         .eq("id", publisherId)
         .single(),
-      supabase
-        .from("user_selections")
-        .select("user_id")
-        .eq("publisher_id", publisherId),
+      supabase.rpc("admin_get_publisher_demographics", { p_publisher_id: publisherId }),
       supabase
         .from("user_books")
         .select("title")
@@ -37,30 +34,11 @@ export async function GET(
         .order("title"),
     ]);
 
-  // Fetch demographics for users who saved this publisher
-  const userIds = (selections ?? []).map((s) => s.user_id);
-  let demographics: { age: string; gender: string; count: number }[] = [];
-
-  if (userIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("age, gender")
-      .in("id", userIds)
-      .not("age", "is", null)
-      .not("gender", "is", null);
-
-    const demoMap = new Map<string, number>();
-    for (const p of profiles ?? []) {
-      const key = `${p.age}__${p.gender}`;
-      demoMap.set(key, (demoMap.get(key) ?? 0) + 1);
-    }
-    demographics = Array.from(demoMap.entries())
-      .map(([key, count]) => {
-        const [age, gender] = key.split("__");
-        return { age, gender, count };
-      })
-      .sort((a, b) => b.count - a.count);
-  }
+  const demographics = (demoRows ?? []).map((d: { age: string; gender: string; count: number }) => ({
+    age: d.age,
+    gender: d.gender,
+    count: Number(d.count),
+  }));
 
   // Group book titles (freetext — duplicates possible)
   const titleMap = new Map<string, number>();
