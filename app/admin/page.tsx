@@ -614,13 +614,12 @@ export default function AdminPage() {
 
                     function VerticalBarChart({ bars }: { bars: { label: string; count: number }[] }) {
                       const max = Math.max(...bars.map((b) => b.count), 1);
-                      const total = bars.reduce((s, b) => s + b.count, 0);
                       return (
                         <div className="flex items-end gap-2 h-28">
                           {bars.map((b, i) => (
                             <div key={i} className="flex flex-col items-center gap-1 flex-1 min-w-0">
                               <span className="text-[10px] text-gray-400">
-                                {Math.round((b.count / total) * 100)}%
+                                {b.count}
                               </span>
                               <div
                                 className="w-full rounded-t"

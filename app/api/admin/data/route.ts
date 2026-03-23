@@ -16,18 +16,14 @@ export async function GET(req: NextRequest) {
   const supabase = adminClient();
 
   const [
-    { data: publishers },
-    { data: selections },
-    { data: books },
+    { data: publisherStatsRaw },
     { data: sessions },
     { count: uniqueUsers },
     { count: totalSaves },
     { count: totalBooks },
     { data: profileDemographics },
   ] = await Promise.all([
-    supabase.from("publishers").select("id, name_th, name_en").limit(5000),
-    supabase.from("user_selections").select("publisher_id, user_id").limit(50000),
-    supabase.from("user_books").select("publisher_id, title").limit(50000),
+    supabase.rpc("admin_get_publisher_stats"),
     supabase.from("sessions").select("user_id, created_at").limit(50000),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("user_selections").select("*", { count: "exact", head: true }),
@@ -35,33 +31,20 @@ export async function GET(req: NextRequest) {
     supabase.from("profiles").select("age, gender").not("age", "is", null).not("gender", "is", null).limit(50000),
   ]);
 
-  // Unique savers per publisher
-  const saversByPub = new Map<string, Set<string>>();
-  for (const s of selections ?? []) {
-    if (!saversByPub.has(s.publisher_id)) saversByPub.set(s.publisher_id, new Set());
-    saversByPub.get(s.publisher_id)!.add(s.user_id);
-  }
-
-  // Book entries per publisher
-  const booksByPub = new Map<string, number>();
-  for (const b of books ?? []) {
-    booksByPub.set(b.publisher_id, (booksByPub.get(b.publisher_id) ?? 0) + 1);
-  }
-
-  const publisherStats = (publishers ?? [])
-    .map((p) => {
-      const saves = saversByPub.get(p.id)?.size ?? 0;
-      const booksAdded = booksByPub.get(p.id) ?? 0;
-      return {
-        id: p.id,
-        name_th: p.name_th,
-        name_en: p.name_en ?? null,
-        saves,
-        books_added: booksAdded,
-        books_per_saver: saves > 0 ? Math.round((booksAdded / saves) * 10) / 10 : 0,
-      };
-    })
-    .sort((a, b) => b.saves - a.saves);
+  const publisherStats = (publisherStatsRaw ?? []).map((p: {
+    id: string; name_th: string; name_en: string | null; saves: number; books_added: number;
+  }) => {
+    const saves = Number(p.saves);
+    const booksAdded = Number(p.books_added);
+    return {
+      id: p.id,
+      name_th: p.name_th,
+      name_en: p.name_en ?? null,
+      saves,
+      books_added: booksAdded,
+      books_per_saver: saves > 0 ? Math.round((booksAdded / saves) * 10) / 10 : 0,
+    };
+  });
 
   // DAU grouped by date (Bangkok timezone)
   const dauMap = new Map<string, Set<string>>();
