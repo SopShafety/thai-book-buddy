@@ -20,7 +20,7 @@ type AdminData = {
   dau: DauEntry[];
   totals: { unique_users: number; total_saves: number; total_books: number };
   demographics: { age: DemoEntry[]; gender: DemoEntry[] };
-  top_books: { title: string; count: number }[];
+  top_books: { title: string; count: number; publisher_name: string }[];
 };
 
 type PublisherDetail = {
@@ -423,9 +423,9 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {/* Top 5 wishlisted publishers */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-500 mb-4">Top 5 Wishlisted Publishers</h2>
+              <h2 className="text-sm font-semibold text-gray-500 mb-4">Top 10 Wishlisted Publishers</h2>
               <div className="flex flex-col gap-2">
-                {data.publishers.slice(0, 5).map((p, i) => {
+                {data.publishers.slice(0, 10).map((p, i) => {
                   const max = data.publishers[0]?.saves || 1;
                   const pct = Math.round((p.saves / max) * 100);
                   return (
@@ -454,7 +454,10 @@ export default function AdminPage() {
                       <div key={i} className="relative flex items-center gap-3 py-2 px-3 rounded-lg overflow-hidden">
                         <div className="absolute inset-0 bg-[#fff8ee] rounded-lg" style={{ width: `${pct}%` }} />
                         <span className="relative text-xs text-gray-300 w-4 shrink-0">{i + 1}</span>
-                        <span className="relative text-sm text-gray-700 flex-1 truncate">{b.title}</span>
+                        <div className="relative flex-1 min-w-0">
+                          <p className="text-sm text-gray-700 truncate">{b.title}</p>
+                          <p className="text-xs text-gray-400 truncate">{b.publisher_name}</p>
+                        </div>
                         <span className="relative text-sm font-semibold text-[#c4855a] shrink-0">{b.count}</span>
                       </div>
                     );
@@ -581,43 +584,73 @@ export default function AdminPage() {
               ) : (
                 <div className="flex flex-col gap-6">
                   {/* Demographics */}
-                  {detail.demographics.length > 0 ? (
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        Demographics of Savers
-                      </h3>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-100">
-                            <th className="text-left py-2 text-xs text-gray-400 font-medium">
-                              Age
-                            </th>
-                            <th className="text-left py-2 text-xs text-gray-400 font-medium">
-                              Gender
-                            </th>
-                            <th className="text-right py-2 text-xs text-gray-400 font-medium">
-                              Count
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {detail.demographics.map((d, i) => (
-                            <tr key={i} className="border-b border-gray-50">
-                              <td className="py-2 text-gray-700">{d.age}</td>
-                              <td className="py-2 text-gray-700">{d.gender}</td>
-                              <td className="py-2 text-right font-medium text-[#c4855a]">
-                                {d.count}
-                              </td>
-                            </tr>
+                  {(() => {
+                    const AGE_KEY_ORDER = ["under_18", "18_24", "25_34", "35_44", "45_54", "55_plus"];
+                    const AGE_KEY_LABEL: Record<string, string> = {
+                      under_18: "<18", "18_24": "18-24", "25_34": "25-34",
+                      "35_44": "35-44", "45_54": "45-54", "55_plus": "55+",
+                    };
+
+                    const ageMap = new Map<string, number>();
+                    const genderMap = new Map<string, number>();
+                    for (const d of detail.demographics) {
+                      ageMap.set(d.age, (ageMap.get(d.age) ?? 0) + d.count);
+                      genderMap.set(d.gender, (genderMap.get(d.gender) ?? 0) + d.count);
+                    }
+                    const ageBars = AGE_KEY_ORDER
+                      .filter((k) => ageMap.has(k))
+                      .map((k) => ({ label: AGE_KEY_LABEL[k] ?? k, count: ageMap.get(k)! }));
+                    const genderBars = Array.from(genderMap.entries())
+                      .map(([label, count]) => ({ label, count }))
+                      .sort((a, b) => b.count - a.count);
+
+                    if (ageBars.length === 0 && genderBars.length === 0) {
+                      return (
+                        <p className="text-sm text-gray-400">
+                          ยังไม่มีข้อมูล demographics (ผู้ใช้ยังไม่ผ่าน onboarding)
+                        </p>
+                      );
+                    }
+
+                    function VerticalBarChart({ bars }: { bars: { label: string; count: number }[] }) {
+                      const max = Math.max(...bars.map((b) => b.count), 1);
+                      const total = bars.reduce((s, b) => s + b.count, 0);
+                      return (
+                        <div className="flex items-end gap-2 h-28">
+                          {bars.map((b, i) => (
+                            <div key={i} className="flex flex-col items-center gap-1 flex-1 min-w-0">
+                              <span className="text-[10px] text-gray-400">
+                                {Math.round((b.count / total) * 100)}%
+                              </span>
+                              <div
+                                className="w-full rounded-t"
+                                style={{
+                                  height: `${Math.max(4, Math.round((b.count / max) * 64))}px`,
+                                  backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length],
+                                }}
+                              />
+                              <span className="text-[10px] text-gray-400 truncate w-full text-center">
+                                {b.label}
+                              </span>
+                            </div>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">
-                      ยังไม่มีข้อมูล demographics (ผู้ใช้ยังไม่ผ่าน onboarding)
-                    </p>
-                  )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Age</p>
+                          <VerticalBarChart bars={ageBars} />
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-4">
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Gender</p>
+                          <VerticalBarChart bars={genderBars} />
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Book titles */}
                   {detail.books.length > 0 && (

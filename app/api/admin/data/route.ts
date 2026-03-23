@@ -113,9 +113,10 @@ export async function GET(req: NextRequest) {
 
   // Top 10 books globally via RPC (avoids PostgREST max_rows cap on full-table scans)
   const { data: topBooksData } = await supabase.rpc("admin_get_top_books", { n: 10 });
-  const top_books = (topBooksData ?? []).map((b: { title: string; count: number }) => ({
+  const top_books = (topBooksData ?? []).map((b: { title: string; count: number; publisher_name: string }) => ({
     title: b.title,
     count: Number(b.count),
+    publisher_name: b.publisher_name,
   }));
 
   return NextResponse.json({ publishers: publisherStats, dau, totals, demographics, top_books });
