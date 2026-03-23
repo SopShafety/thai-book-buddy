@@ -65,7 +65,7 @@ export async function GET(
   // Group book titles (freetext — duplicates possible)
   const titleMap = new Map<string, number>();
   for (const b of books ?? []) {
-    const title = b.title?.trim() || "(ไม่มีชื่อ)";
+    const title = b.title ? b.title.normalize("NFC").trim().replace(/\s+/g, " ") || "(ไม่มีชื่อ)" : "(ไม่มีชื่อ)";
     titleMap.set(title, (titleMap.get(title) ?? 0) + 1);
   }
   const bookList = Array.from(titleMap.entries())

@@ -111,16 +111,12 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.count - a.count),
   };
 
-  // Top 10 books globally
-  const globalTitleMap = new Map<string, number>();
-  for (const b of books ?? []) {
-    const title = b.title?.trim() || "(ไม่มีชื่อ)";
-    globalTitleMap.set(title, (globalTitleMap.get(title) ?? 0) + 1);
-  }
-  const top_books = Array.from(globalTitleMap.entries())
-    .map(([title, count]) => ({ title, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  // Top 10 books globally via RPC (avoids PostgREST max_rows cap on full-table scans)
+  const { data: topBooksData } = await supabase.rpc("admin_get_top_books", { n: 10 });
+  const top_books = (topBooksData ?? []).map((b: { title: string; count: number }) => ({
+    title: b.title,
+    count: Number(b.count),
+  }));
 
   return NextResponse.json({ publishers: publisherStats, dau, totals, demographics, top_books });
 }
