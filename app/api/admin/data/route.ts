@@ -23,14 +23,16 @@ export async function GET(req: NextRequest) {
     { count: uniqueUsers },
     { count: totalSaves },
     { count: totalBooks },
+    { data: profileDemographics },
   ] = await Promise.all([
     supabase.from("publishers").select("id, name_th, name_en").limit(5000),
     supabase.from("user_selections").select("publisher_id, user_id").limit(50000),
-    supabase.from("user_books").select("publisher_id").limit(50000),
+    supabase.from("user_books").select("publisher_id, title").limit(50000),
     supabase.from("sessions").select("user_id, created_at").limit(50000),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("user_selections").select("*", { count: "exact", head: true }),
     supabase.from("user_books").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("age, gender").not("age", "is", null).not("gender", "is", null).limit(50000),
   ]);
 
   // Unique savers per publisher
@@ -80,5 +82,45 @@ export async function GET(req: NextRequest) {
     total_books: totalBooks ?? 0,
   };
 
-  return NextResponse.json({ publishers: publisherStats, dau, totals });
+  // Global demographics from profiles
+  // age is stored as a string key from the onboarding form (e.g. "25_34", "55_plus")
+  const AGE_KEY_ORDER = ["under_18", "18_24", "25_34", "35_44", "45_54", "55_plus"];
+  const AGE_KEY_LABEL: Record<string, string> = {
+    under_18: "<18",
+    "18_24": "18-24",
+    "25_34": "25-34",
+    "35_44": "35-44",
+    "45_54": "45-54",
+    "55_plus": "55+",
+  };
+
+  const ageMap = new Map<string, number>();
+  const genderMap = new Map<string, number>();
+  for (const p of profileDemographics ?? []) {
+    const ageKey = String(p.age);
+    const gender = String(p.gender);
+    ageMap.set(ageKey, (ageMap.get(ageKey) ?? 0) + 1);
+    genderMap.set(gender, (genderMap.get(gender) ?? 0) + 1);
+  }
+  const demographics = {
+    age: AGE_KEY_ORDER
+      .filter((k) => ageMap.has(k))
+      .map((k) => ({ value: AGE_KEY_LABEL[k] ?? k, count: ageMap.get(k)! })),
+    gender: Array.from(genderMap.entries())
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => b.count - a.count),
+  };
+
+  // Top 10 books globally
+  const globalTitleMap = new Map<string, number>();
+  for (const b of books ?? []) {
+    const title = b.title?.trim() || "(ไม่มีชื่อ)";
+    globalTitleMap.set(title, (globalTitleMap.get(title) ?? 0) + 1);
+  }
+  const top_books = Array.from(globalTitleMap.entries())
+    .map(([title, count]) => ({ title, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return NextResponse.json({ publishers: publisherStats, dau, totals, demographics, top_books });
 }

@@ -13,10 +13,14 @@ type PublisherStat = {
 
 type DauEntry = { date: string; count: number };
 
+type DemoEntry = { value: string; count: number };
+
 type AdminData = {
   publishers: PublisherStat[];
   dau: DauEntry[];
   totals: { unique_users: number; total_saves: number; total_books: number };
+  demographics: { age: DemoEntry[]; gender: DemoEntry[] };
+  top_books: { title: string; count: number }[];
 };
 
 type PublisherDetail = {
@@ -28,6 +32,77 @@ type PublisherDetail = {
 };
 
 type SortKey = "saves" | "books_added" | "books_per_saver" | "name_th";
+
+const DONUT_COLORS = [
+  "#c4855a", // primary orange
+  "#8fad7a", // green
+  "#973c00", // dark orange-brown
+  "#e2c9a6", // light tan
+  "#9c7a5b", // medium brown
+  "#a6a09b", // muted gray
+];
+
+function DonutChart({ entries, label }: { entries: DemoEntry[]; label: string }) {
+  const total = entries.reduce((s, e) => s + e.count, 0);
+  if (total === 0) {
+    return (
+      <div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{label}</p>
+        <p className="text-xs text-gray-400">ยังไม่มีข้อมูล</p>
+      </div>
+    );
+  }
+
+  const R = 40;
+  const CX = 56;
+  const CY = 56;
+
+  let cumulativeAngle = -90; // start from top
+  const slices = entries.map((e, i) => {
+    const pct = e.count / total;
+    const angle = pct * 360;
+    const startAngle = cumulativeAngle;
+    cumulativeAngle += angle;
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = ((startAngle + angle) * Math.PI) / 180;
+    const x1 = CX + R * Math.cos(startRad);
+    const y1 = CY + R * Math.sin(startRad);
+    const x2 = CX + R * Math.cos(endRad);
+    const y2 = CY + R * Math.sin(endRad);
+    const largeArc = angle > 180 ? 1 : 0;
+    const d = `M ${CX} ${CY} L ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+    return { ...e, d, color: DONUT_COLORS[i % DONUT_COLORS.length], pct };
+  });
+
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{label}</p>
+      <div className="flex items-center gap-4">
+        <svg width="112" height="112" viewBox="0 0 112 112" className="shrink-0">
+          {slices.map((s, i) => (
+            <path key={i} d={s.d} fill={s.color} />
+          ))}
+          {/* Donut hole */}
+          <circle cx={CX} cy={CY} r={22} fill="white" />
+        </svg>
+        <div className="flex flex-col gap-1.5 min-w-0">
+          {slices.map((s, i) => (
+            <div key={i} className="flex items-center gap-1.5 min-w-0">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: s.color }}
+              />
+              <span className="text-xs text-gray-600 truncate">{s.value}</span>
+              <span className="text-xs text-gray-400 shrink-0 ml-auto pl-2">
+                {(s.pct * 100).toFixed(1)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function downloadCsv(rows: (string | number)[][], filename: string) {
   const csv = rows
@@ -258,7 +333,7 @@ export default function AdminPage() {
           <div className="grid grid-cols-3 gap-4 mb-8">
             {[
               { label: "Unique Users", value: data.totals.unique_users },
-              { label: "Total Saves", value: data.totals.total_saves },
+              { label: "Total Wishlisted Publishers", value: data.totals.total_saves },
               { label: "Books Added", value: data.totals.total_books },
             ].map((s) => (
               <div
@@ -274,60 +349,119 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* DAU chart */}
-        {data && data.dau.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-8">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h2 className="text-sm font-semibold text-gray-500">Daily Active Users</h2>
-              <div className="flex flex-wrap items-center gap-2">
-                {(["24h", "7d", "30d", "all"] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => applyDauPreset(p)}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-                  >
-                    {p === "24h" ? "24 ชม." : p === "7d" ? "7 วัน" : p === "30d" ? "1 เดือน" : "ทั้งหมด"}
-                  </button>
-                ))}
-                <span className="text-xs text-gray-300">|</span>
-                <input
-                  type="date"
-                  value={dauFrom}
-                  onChange={(e) => setDauFrom(e.target.value)}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
-                />
-                <span className="text-xs text-gray-400">–</span>
-                <input
-                  type="date"
-                  value={dauTo}
-                  onChange={(e) => setDauTo(e.target.value)}
-                  className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
-                />
+        {/* DAU + Demographics row */}
+        {data && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+            {/* DAU chart */}
+            {data.dau.length > 0 && (
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 lg:col-span-2 flex flex-col">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                  <h2 className="text-sm font-semibold text-gray-500">Daily Active Users</h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {(["24h", "7d", "30d", "all"] as const).map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => applyDauPreset(p)}
+                        className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+                      >
+                        {p === "24h" ? "24 ชม." : p === "7d" ? "7 วัน" : p === "30d" ? "1 เดือน" : "ทั้งหมด"}
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-300">|</span>
+                    <input
+                      type="date"
+                      value={dauFrom}
+                      onChange={(e) => setDauFrom(e.target.value)}
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
+                    />
+                    <span className="text-xs text-gray-400">–</span>
+                    <input
+                      type="date"
+                      value={dauTo}
+                      onChange={(e) => setDauTo(e.target.value)}
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 outline-none focus:border-[#c4855a]"
+                    />
+                  </div>
+                </div>
+                {filteredDau.length > 0 ? (
+                  <div className="flex items-end gap-1.5 h-32 mt-auto">
+                    {filteredDau.map((d) => (
+                      <div
+                        key={d.date}
+                        className="flex flex-col items-center gap-1 flex-1 min-w-0"
+                      >
+                        <span className="text-[10px] text-gray-400">{d.count}</span>
+                        <div
+                          className="w-full bg-[#c4855a] rounded-t"
+                          style={{
+                            height: `${Math.max(4, Math.round((d.count / dauMax) * 80))}px`,
+                          }}
+                        />
+                        <span className="text-[10px] text-gray-400 truncate w-full text-center">
+                          {formatDate(d.date)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 text-center py-8">ไม่มีข้อมูลในช่วงเวลานี้</p>
+                )}
+              </div>
+            )}
+
+            {/* Demographics */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex flex-col gap-6">
+              <h2 className="text-sm font-semibold text-gray-500">Demographics</h2>
+              <DonutChart entries={data.demographics.age} label="Age" />
+              <DonutChart entries={data.demographics.gender} label="Gender" />
+            </div>
+          </div>
+        )}
+
+        {/* Top 5 publishers + Top 10 books */}
+        {data && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {/* Top 5 wishlisted publishers */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-gray-500 mb-4">Top 5 Wishlisted Publishers</h2>
+              <div className="flex flex-col gap-2">
+                {data.publishers.slice(0, 5).map((p, i) => {
+                  const max = data.publishers[0]?.saves || 1;
+                  const pct = Math.round((p.saves / max) * 100);
+                  return (
+                    <div key={p.id} className="relative flex items-center gap-3 py-2 px-3 rounded-lg overflow-hidden">
+                      <div className="absolute inset-0 bg-[#fff8ee] rounded-lg" style={{ width: `${pct}%` }} />
+                      <span className="relative text-xs text-gray-300 w-4 shrink-0">{i + 1}</span>
+                      <span className="relative text-sm text-gray-700 font-medium flex-1 truncate">{p.name_th}</span>
+                      <span className="relative text-sm font-semibold text-[#c4855a] shrink-0">{p.saves}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            {filteredDau.length > 0 ? (
-              <div className="flex items-end gap-1.5 h-32">
-                {filteredDau.map((d) => (
-                  <div
-                    key={d.date}
-                    className="flex flex-col items-center gap-1 flex-1 min-w-0"
-                  >
-                    <span className="text-[10px] text-gray-400">{d.count}</span>
-                    <div
-                      className="w-full bg-[#c4855a] rounded-t"
-                      style={{
-                        height: `${Math.max(4, Math.round((d.count / dauMax) * 80))}px`,
-                      }}
-                    />
-                    <span className="text-[10px] text-gray-400 truncate w-full text-center">
-                      {formatDate(d.date)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 text-center py-8">ไม่มีข้อมูลในช่วงเวลานี้</p>
-            )}
+
+            {/* Top 10 books saved */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-gray-500 mb-4">Top 10 Books Added</h2>
+              {data.top_books.length === 0 ? (
+                <p className="text-sm text-gray-400">ยังไม่มีข้อมูล</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {data.top_books.map((b, i) => {
+                    const max = data.top_books[0]?.count || 1;
+                    const pct = Math.round((b.count / max) * 100);
+                    return (
+                      <div key={i} className="relative flex items-center gap-3 py-2 px-3 rounded-lg overflow-hidden">
+                        <div className="absolute inset-0 bg-[#fff8ee] rounded-lg" style={{ width: `${pct}%` }} />
+                        <span className="relative text-xs text-gray-300 w-4 shrink-0">{i + 1}</span>
+                        <span className="relative text-sm text-gray-700 flex-1 truncate">{b.title}</span>
+                        <span className="relative text-sm font-semibold text-[#c4855a] shrink-0">{b.count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -356,7 +490,7 @@ export default function AdminPage() {
                       className="text-right px-5 py-3 text-xs text-gray-400 font-medium cursor-pointer select-none hover:text-gray-600"
                       onClick={() => toggleSort("saves")}
                     >
-                      Saves{sortIndicator("saves")}
+                      Wishlisted{sortIndicator("saves")}
                     </th>
                     <th
                       className="text-right px-5 py-3 text-xs text-gray-400 font-medium cursor-pointer select-none hover:text-gray-600"
@@ -419,7 +553,7 @@ export default function AdminPage() {
               <div>
                 <h2 className="font-bold text-gray-800">{detail.name_th}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {detail.saves} saves · {detail.books_added} books added
+                  {detail.saves} wishlisted · {detail.books_added} books added
                 </p>
               </div>
               <div className="flex items-center gap-2">
