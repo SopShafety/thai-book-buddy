@@ -89,6 +89,7 @@ export default function MapPage() {
           { booth: "B22", name_th: "สำนักพิมพ์ ซ" },
           { booth: "H20", name_th: "สำนักพิมพ์ ณ" },
           { booth: "N18", name_th: "สำนักพิมพ์ ด" },
+          { booth: "D26", name_th: "สำนักพิมพ์ ทดสอบ D26" },
         ];
         setRoute(buildRoute(mockPairs));
         setLoaded(true);

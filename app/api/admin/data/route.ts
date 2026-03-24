@@ -8,27 +8,34 @@ function adminClient() {
   );
 }
 
+let responseCache: { data: object; at: number } | null = null;
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
 export async function GET(req: NextRequest) {
   if (req.headers.get("x-admin-password") !== process.env.ADMIN_PASSWORD) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (responseCache && Date.now() - responseCache.at < CACHE_TTL_MS) {
+    return NextResponse.json(responseCache.data);
   }
 
   const supabase = adminClient();
 
   const [
     { data: publisherStatsRaw },
-    { data: sessions },
+    { data: dauRows },
     { count: uniqueUsers },
     { count: totalSaves },
     { count: totalBooks },
-    { data: profileDemographics },
+    { data: demoRows },
   ] = await Promise.all([
     supabase.rpc("admin_get_publisher_stats"),
-    supabase.from("sessions").select("user_id, created_at").limit(50000),
+    supabase.rpc("admin_get_dau"),
     supabase.from("profiles").select("*", { count: "exact", head: true }),
     supabase.from("user_selections").select("*", { count: "exact", head: true }),
     supabase.from("user_books").select("*", { count: "exact", head: true }),
-    supabase.from("profiles").select("age, gender").not("age", "is", null).not("gender", "is", null).limit(50000),
+    supabase.rpc("admin_get_global_demographics"),
   ]);
 
   const publisherStats = (publisherStatsRaw ?? []).map((p: {
@@ -46,18 +53,10 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  // DAU grouped by date (Bangkok timezone)
-  const dauMap = new Map<string, Set<string>>();
-  for (const s of sessions ?? []) {
-    const date = new Date(s.created_at).toLocaleDateString("en-CA", {
-      timeZone: "Asia/Bangkok",
-    });
-    if (!dauMap.has(date)) dauMap.set(date, new Set());
-    dauMap.get(date)!.add(s.user_id);
-  }
-  const dau = Array.from(dauMap.entries())
-    .map(([date, users]) => ({ date, count: users.size }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const dau = (dauRows ?? []).map((r: { date: string; count: number }) => ({
+    date: r.date,
+    count: Number(r.count),
+  }));
 
   const totals = {
     unique_users: uniqueUsers ?? 0,
@@ -79,11 +78,10 @@ export async function GET(req: NextRequest) {
 
   const ageMap = new Map<string, number>();
   const genderMap = new Map<string, number>();
-  for (const p of profileDemographics ?? []) {
-    const ageKey = String(p.age);
-    const gender = String(p.gender);
-    ageMap.set(ageKey, (ageMap.get(ageKey) ?? 0) + 1);
-    genderMap.set(gender, (genderMap.get(gender) ?? 0) + 1);
+  for (const row of demoRows ?? []) {
+    const r = row as { dimension: string; value: string; count: number };
+    if (r.dimension === "age") ageMap.set(r.value, Number(r.count));
+    else genderMap.set(r.value, Number(r.count));
   }
   const demographics = {
     age: AGE_KEY_ORDER
@@ -102,5 +100,7 @@ export async function GET(req: NextRequest) {
     publisher_name: b.publisher_name,
   }));
 
-  return NextResponse.json({ publishers: publisherStats, dau, totals, demographics, top_books });
+  const result = { publishers: publisherStats, dau, totals, demographics, top_books };
+  responseCache = { data: result, at: Date.now() };
+  return NextResponse.json(result);
 }
