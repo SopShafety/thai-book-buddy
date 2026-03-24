@@ -79,16 +79,11 @@ export default function BrowsePage() {
         }
       }
       try {
-        const supabase = getSupabase();
-        const { data: pubs, error } = await supabase
-          .from("publishers")
-          .select("id, name_th, name_en, category, booths(zone, booth_number)")
-          .order("name_th");
-        if (error) throw error;
-        if (pubs) {
-          setPublishers(pubs as Publisher[]);
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: pubs, ts: Date.now() }));
-        }
+        const res = await fetch("/api/publishers");
+        if (!res.ok) throw new Error("fetch failed");
+        const pubs = await res.json();
+        setPublishers(pubs as Publisher[]);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: pubs, ts: Date.now() }));
       } catch {
         setPubsError(true);
       }

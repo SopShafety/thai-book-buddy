@@ -1,0 +1,30 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+// Cache at CDN/ISR level — revalidates every hour
+export const revalidate = 3600;
+
+// Module-level cache as belt-and-suspenders for when the function is invoked
+let memCache: { data: object[]; at: number } | null = null;
+const MEM_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+export async function GET() {
+  if (memCache && Date.now() - memCache.at < MEM_TTL_MS) {
+    return NextResponse.json(memCache.data);
+  }
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data, error } = await supabase
+    .from("publishers")
+    .select("id, name_th, name_en, category, booths(zone, booth_number)")
+    .order("name_th");
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  memCache = { data: data ?? [], at: Date.now() };
+  return NextResponse.json(memCache.data);
+}
