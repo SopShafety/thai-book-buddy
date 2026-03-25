@@ -30,9 +30,9 @@ const LIFFContext = createContext<LIFFContextValue>({
 
 const ONBOARDING_KEY = "onboarding_complete";
 
-function withTimeout<T>(promise: Promise<T>, ms: number, msg: string): Promise<T> {
+function withTimeout<T>(promise: PromiseLike<T>, ms: number, msg: string): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<never>((_, reject) => setTimeout(() => reject(new Error(msg)), ms)),
   ]);
 }
