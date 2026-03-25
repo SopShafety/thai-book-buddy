@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, HandHeart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -30,6 +30,10 @@ export default function MyListPage() {
   const pendingAction = useRef<(() => Promise<void>) | null>(null);
   const toastRef = useRef<HTMLDivElement>(null);
   const [notesByPublisher, setNotesByPublisher] = useState<Map<string, string>>(new Map());
+  const [showDonateBanner, setShowDonateBanner] = useState(
+    () => process.env.NEXT_PUBLIC_DONATE_BANNER_ENABLED === "true" &&
+          typeof window !== "undefined" && !sessionStorage.getItem("donate_banner_dismissed")
+  );
 
   useEffect(() => {
     return () => {
@@ -298,6 +302,27 @@ export default function MyListPage() {
               </button>
             </div>
           </div>
+        )}
+
+        {/* Donate banner */}
+        {showDonateBanner && (
+          <a
+            href="https://www.buymeacoffee.com/mangporh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mx-[16px] mb-[8px] bg-[#fff8ee] border border-[#c4855a] rounded-[16px] p-[12px] shadow-[4px_4px_30px_0px_rgba(196,133,90,0.2)]"
+            onClick={() => {
+              sessionStorage.setItem("donate_banner_dismissed", "1");
+              setShowDonateBanner(false);
+            }}
+          >
+            <div className="flex items-center gap-[8px]">
+              <HandHeart size={24} color="#DEA0A0" strokeWidth={1.5} />
+              <p className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#973c00]">
+                สนับสนุน BookFair Buddy
+              </p>
+            </div>
+          </a>
         )}
 
         {/* Publisher list */}

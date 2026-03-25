@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, Check } from "lucide-react";
+import { Bookmark, Check, HandHeart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabase } from "../../utils/supabase";
@@ -37,6 +37,11 @@ export default function BrowsePage() {
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, []);
+
+  const [showDonateBanner, setShowDonateBanner] = useState(
+    () => process.env.NEXT_PUBLIC_DONATE_BANNER_ENABLED === "true" &&
+          typeof window !== "undefined" && !sessionStorage.getItem("donate_banner_dismissed")
+  );
 
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
 
@@ -198,7 +203,7 @@ export default function BrowsePage() {
       {/* Scrollable area — header scrolls away, search stays sticky */}
       <div className="flex-1 overflow-y-auto">
         {/* Header — scrolls away */}
-        <div className="px-[16px] pt-[24px] pb-[12px]">
+        <div className="px-[16px] pt-[24px]">
           <BrandHeader />
         </div>
 
@@ -255,6 +260,27 @@ export default function BrowsePage() {
           )}
           </div>
         </div>
+
+        {/* Donate banner */}
+        {showDonateBanner && (
+          <a
+            href="https://www.buymeacoffee.com/mangporh"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block mx-[16px] mb-[8px] bg-[#fff8ee] border border-[#c4855a] rounded-[16px] p-[12px] shadow-[4px_4px_30px_0px_rgba(196,133,90,0.2)]"
+            onClick={() => {
+              sessionStorage.setItem("donate_banner_dismissed", "1");
+              setShowDonateBanner(false);
+            }}
+          >
+            <div className="flex items-center gap-[8px]">
+              <HandHeart size={24} color="#DEA0A0" strokeWidth={1.5} />
+              <p className="font-[family-name:var(--font-sarabun)] text-[16px] text-[#973c00]">
+                สนับสนุน BookFair Buddy
+              </p>
+            </div>
+          </a>
+        )}
 
         {/* List */}
         <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
