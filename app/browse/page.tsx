@@ -11,6 +11,7 @@ import BrandHeader from "../../components/BrandHeader";
 import LoadingScreen from "../../components/LoadingScreen";
 import ErrorScreen from "../../components/ErrorScreen";
 import SearchBar from "../../components/SearchBar";
+import BookFairReminderModal from "../../components/BookFairReminderModal";
 import type { Publisher } from "../../types";
 
 export default function BrowsePage() {
@@ -41,6 +42,10 @@ export default function BrowsePage() {
   const [showDonateBanner, setShowDonateBanner] = useState(
     () => process.env.NEXT_PUBLIC_DONATE_BANNER_ENABLED === "true" &&
           typeof window !== "undefined" && !sessionStorage.getItem("donate_banner_dismissed")
+  );
+
+  const [showReminder, setShowReminder] = useState(
+    () => typeof window !== "undefined" && !localStorage.getItem("bookfair_reminder_dismissed")
   );
 
   const isPreview = typeof window !== "undefined" && window.location.search.includes("preview=1");
@@ -355,6 +360,7 @@ export default function BrowsePage() {
       })()}
 
       <BottomNav />
+      <BookFairReminderModal isOpen={showReminder} onClose={() => setShowReminder(false)} />
     </div>
   );
 }
