@@ -300,10 +300,10 @@ export default function MapPage() {
                     const booths = groupMap.get(name_th)!;
                     return (
                       <div key={`list-${i}`} className="flex items-center gap-[12px]">
-                        <div className="shrink-0 size-[8px] rounded-full bg-[#c4855a]" />
+                        <div className="shrink-0 size-[14px] rounded-full bg-[#8fad7a]" />
                         <button
                           onClick={() => handleFocusBooth(booths[0])}
-                          className="flex-1 min-w-0 text-left font-[family-name:var(--font-sarabun)] text-[14px] text-[#3d2b1a] truncate active:opacity-60 transition-opacity"
+                          className="flex-1 min-w-0 text-left font-[family-name:var(--font-sarabun)] font-light text-[14px] text-[#973c00] truncate active:opacity-60 transition-opacity"
                         >
                           {name_th}
                         </button>
@@ -312,13 +312,13 @@ export default function MapPage() {
                             <button
                               key={booth}
                               onClick={() => handleFocusBooth(booth)}
-                              className={`shrink-0 px-[8px] py-[2px] rounded-full border transition-all active:scale-95 ${
+                              className={`shrink-0 h-[29px] px-[9px] py-[1px] rounded-[16px] border transition-all active:scale-95 ${
                                 activeBooth === booth
                                   ? "bg-[#c4855a] border-[#c4855a]"
-                                  : "bg-[#fff8ee] border-[#f0e4d4]"
+                                  : "bg-[#fff8ee] border-[#e2c9a6]"
                               }`}
                             >
-                              <p className={`font-[family-name:var(--font-jakarta)] font-medium text-[12px] ${activeBooth === booth ? "text-white" : "text-[#9c7a5b]"}`}>
+                              <p className={`font-[family-name:var(--font-sarabun)] text-[14px] ${activeBooth === booth ? "text-white" : "text-[#c4855a]"}`}>
                                 {booth}
                               </p>
                             </button>
