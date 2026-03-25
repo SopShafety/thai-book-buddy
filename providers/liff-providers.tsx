@@ -30,19 +30,30 @@ const LIFFContext = createContext<LIFFContextValue>({
 
 const ONBOARDING_KEY = "onboarding_complete";
 
+function withTimeout<T>(promise: Promise<T>, ms: number, msg: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => setTimeout(() => reject(new Error(msg)), ms)),
+  ]);
+}
+
 async function signInWithLINE(
   liff: Liff
 ): Promise<{ error: string | null; needsOnboarding: boolean }> {
   const supabase = getSupabase();
 
   // Fast path: reuse existing valid session
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await withTimeout(
+    supabase.auth.getSession(),
+    10_000,
+    "Session check timed out. Please try again."
+  );
   if (session) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("age, gender")
-      .eq("id", session.user.id)
-      .single();
+    const { data: profile } = await withTimeout(
+      supabase.from("profiles").select("age, gender").eq("id", session.user.id).single(),
+      10_000,
+      "Profile fetch timed out. Please try again."
+    ).catch(() => ({ data: null }));
     const needsOnboarding = !profile?.age || !profile?.gender;
     if (needsOnboarding) {
       localStorage.removeItem(ONBOARDING_KEY);
@@ -108,7 +119,11 @@ async function signInWithLINE(
   const { token_hash, display_name } = edgeData;
 
   // Step 2: Exchange token hash for Supabase session
-  const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: "email" });
+  const { data, error } = await withTimeout(
+    supabase.auth.verifyOtp({ token_hash, type: "email" }),
+    10_000,
+    "Authentication timed out. Please try again."
+  ).catch((err) => ({ data: { user: null }, error: err as Error }));
   if (error || !data.user) {
     return {
       error: `verifyOtp failed: ${error?.message ?? "no user returned"}`,
@@ -161,7 +176,13 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
 
     import("@line/liff")
       .then((liff) => liff.default)
+      .catch((err: Error) => {
+        setLiffError(`Failed to load LIFF: ${err.message}`);
+        setIsLoading(false);
+        return null;
+      })
       .then((liff) => {
+        if (!liff) return;
         const initTimeout = new Promise<never>((_, reject) =>
           setTimeout(
             () => reject(new Error("Connection timed out. Please reload and try again.")),
