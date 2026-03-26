@@ -107,12 +107,12 @@ export default function BrowsePage() {
     async function loadUserData() {
       try {
         const supabase = getSupabase();
-        const [{ data: user }, { data: sels }, { data: books }] = await Promise.all([
-          supabase.auth.getUser(),
+        const [{ data: { session } }, { data: sels }, { data: books }] = await Promise.all([
+          supabase.auth.getSession(),
           supabase.from("user_selections").select("publisher_id"),
           supabase.from("user_books").select("publisher_id"),
         ]);
-        if (user?.user) setUserId(user.user.id);
+        if (session?.user) setUserId(session.user.id);
         if (sels) setSelectedIds(new Set(sels.map((s: { publisher_id: string }) => s.publisher_id)));
         if (books) {
           const counts = new Map<string, number>();

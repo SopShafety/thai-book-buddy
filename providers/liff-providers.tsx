@@ -201,14 +201,6 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
                 setAuthError(error);
                 liff.logout();
                 setIsLoggedIn(false);
-              } else {
-                // Record session (fire and forget)
-                const supabase = getSupabase();
-                supabase.auth.getUser().then(({ data }) => {
-                  if (data?.user) {
-                    supabase.from("sessions").insert({ user_id: data.user.id }).then();
-                  }
-                });
               }
               setNeedsOnboarding(needsOnboarding);
             }
