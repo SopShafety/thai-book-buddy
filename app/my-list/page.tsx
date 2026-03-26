@@ -85,8 +85,8 @@ export default function MyListPage() {
     async function load() {
       try {
         const supabase = getSupabase();
-        const [{ data: userData }, { data: sels, error: selsError }, { data: bookData, error: bookError }] = await Promise.all([
-          supabase.auth.getUser(),
+        const [{ data: { session } }, { data: sels, error: selsError }, { data: bookData, error: bookError }] = await Promise.all([
+          supabase.auth.getSession(),
           supabase
             .from("user_selections")
             .select("publisher_id, note, publishers(id, name_th, name_en, booths(zone, booth_number))")
@@ -95,7 +95,7 @@ export default function MyListPage() {
         ]);
         if (selsError) throw selsError;
         if (bookError) throw bookError;
-        if (userData?.user) setUserId(userData.user.id);
+        if (session?.user) setUserId(session.user.id);
         if (sels) {
           setPublishers(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
