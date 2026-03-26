@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Cache at CDN/ISR level — revalidates every hour
-export const revalidate = 3600;
+// Force dynamic so Next.js doesn't try to pre-render this at build time
+export const dynamic = "force-dynamic";
 
 // Module-level cache as belt-and-suspenders for when the function is invoked
 let memCache: { data: object[]; at: number } | null = null;
