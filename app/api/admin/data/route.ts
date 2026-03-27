@@ -8,16 +8,9 @@ function adminClient() {
   );
 }
 
-let responseCache: { data: object; at: number } | null = null;
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-
 export async function GET(req: NextRequest) {
   if (req.headers.get("x-admin-password") !== process.env.ADMIN_PASSWORD) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (responseCache && Date.now() - responseCache.at < CACHE_TTL_MS) {
-    return NextResponse.json(responseCache.data);
   }
 
   const supabase = adminClient();
@@ -101,6 +94,5 @@ export async function GET(req: NextRequest) {
   }));
 
   const result = { publishers: publisherStats, dau, totals, demographics, top_books };
-  responseCache = { data: result, at: Date.now() };
   return NextResponse.json(result);
 }
