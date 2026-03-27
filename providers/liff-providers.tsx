@@ -201,6 +201,14 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
                 setAuthError(error);
                 liff.logout();
                 setIsLoggedIn(false);
+              } else {
+                // Record session for DAU tracking (fire and forget)
+                const supabase = getSupabase();
+                supabase.auth.getSession().then(({ data }) => {
+                  if (data?.session?.user) {
+                    supabase.from("sessions").insert({ user_id: data.session.user.id }).then();
+                  }
+                });
               }
               setNeedsOnboarding(needsOnboarding);
             }
