@@ -171,10 +171,34 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
-    // Dev bypass: skip LIFF entirely, force logged-in state
+    // Dev bypass: skip LIFF, create a real Supabase session with a test user
     if (process.env.NODE_ENV === "development" && env.NEXT_PUBLIC_DEV_BYPASS_AUTH === "true") {
-      setIsLoggedIn(true);
-      setIsLoading(false);
+      const supabase = getSupabase();
+      const devEmail = "dev@localhost.test";
+      const devPassword = "dev-password-123";
+      (async () => {
+        // Try to sign in first, sign up if user doesn't exist
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: devEmail,
+          password: devPassword,
+        });
+        if (signInError) {
+          await supabase.auth.signUp({ email: devEmail, password: devPassword });
+          await supabase.auth.signInWithPassword({ email: devEmail, password: devPassword });
+        }
+        // Ensure profile exists
+        const { data: session } = await supabase.auth.getSession();
+        if (session?.session?.user) {
+          await supabase.from("profiles").upsert({
+            id: session.session.user.id,
+            display_name: "Dev User",
+            age: "25_34",
+            gender: "other",
+          });
+        }
+        setIsLoggedIn(true);
+        setIsLoading(false);
+      })();
       return;
     }
 
@@ -205,21 +229,6 @@ function LIFFProvider({ children }: { children: React.ReactNode }) {
                 setAuthError(error);
                 liff.logout();
                 setIsLoggedIn(false);
-              } else {
-                // Record session for DAU tracking (once per day per user)
-                const supabase = getSupabase();
-                supabase.auth.getSession().then(({ data }) => {
-                  if (!data?.session?.user) return;
-                  const uid = data.session.user.id;
-                  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-                  const sessionKey = `session_recorded_${today}`;
-                  if (localStorage.getItem(sessionKey)) return; // already recorded today
-                  supabase.from("sessions").insert({ user_id: uid })
-                    .then(({ error }) => {
-                      if (!error) localStorage.setItem(sessionKey, "1");
-                      else console.error("[DB] Session insert failed:", error.message);
-                    });
-                });
               }
               setNeedsOnboarding(needsOnboarding);
             }
